@@ -14,7 +14,7 @@ const t = messages[locale];
     <input type="range" min="0" max="100" value="50" disabled />
   </label>
   <p class="experiment-result">
-    {t.easingValue}:{" "}
+    <span>{t.easingValue}</span>{" "}
     <output aria-label={t.easingValue} aria-live="off">
       0.875
     </output>
@@ -41,13 +41,13 @@ const t = messages[locale];
 </easing-experiment>
 
 <script>
-  import { mountEasing } from "../client/easing";
+  import { mountEasingExperiment } from "../client/easing-experiment";
 
   class EasingExperiment extends HTMLElement {
     #dispose?: () => void;
 
     connectedCallback() {
-      this.#dispose = mountEasing(this);
+      this.#dispose = mountEasingExperiment(this);
     }
 
     disconnectedCallback() {

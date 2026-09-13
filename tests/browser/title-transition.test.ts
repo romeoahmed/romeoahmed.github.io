@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { prepareTitleTransition } from "../../src/client/titles";
+import { prepareTitleTransition } from "../../src/client/title-transition";
 
 test("only the chosen title is paired with the destination article", ({
   onTestFinished,

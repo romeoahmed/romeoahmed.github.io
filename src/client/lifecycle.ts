@@ -1,14 +1,15 @@
-import { prepareTitleTransition } from "./titles";
+import { prepareTitleTransition } from "./title-transition";
 import { applyTheme, mountTheme } from "./theme";
 import { mountReading } from "./reading";
+import { mountSearch } from "./search";
 
 let disposePage = () => {};
 let firstPage = true;
 function mountPage() {
   disposePage();
   const controller = new AbortController();
-  const cleanups = [mountTheme(), mountReading()];
-  // An async mount may finish after a page swap; dispose its result immediately.
+  const cleanups = [mountTheme(), mountReading(), mountSearch()];
+  // Dispose mounts that finish after their page has left.
   const own = async (mount: () => (() => void) | Promise<() => void>) => {
     if (controller.signal.aborted) return;
     const cleanup = await mount();
@@ -18,20 +19,20 @@ function mountPage() {
   void import("./anchors")
     .then(({ mountAnchors }) => own(mountAnchors))
     .catch(() => {
-      // Astro still handles fragment navigation without scroll animation.
+      // Fragment navigation still works through Astro.
     });
   const reveal = firstPage;
   void import("./motion")
     .then(({ mountMotion }) => own(() => mountMotion(reveal)))
     .catch(() => {
-      // Content is visible before motion loads.
+      // Content is already visible without motion.
     });
   firstPage = false;
   if (document.querySelector("code.language-mermaid")) {
     void import("./diagrams")
       .then(({ mountDiagrams }) => own(mountDiagrams))
       .catch(() => {
-        // Keep the diagram source readable when the renderer cannot load.
+        // The diagram source remains readable.
       });
   }
   const host = document.querySelector<HTMLElement>("[data-spatial-scene]");
@@ -40,9 +41,9 @@ function mountPage() {
       ([entry]) => {
         if (!entry?.isIntersecting) return;
         observer.disconnect();
-        void import("./scene")
-          .then(({ mountScene }) =>
-            own(() => mountScene(host, controller.signal)),
+        void import("./particle-scene")
+          .then(({ mountParticleScene }) =>
+            own(() => mountParticleScene(host, controller.signal)),
           )
           .catch(() => {
             host.removeAttribute("data-scene-ready");

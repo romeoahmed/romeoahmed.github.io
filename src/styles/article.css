@@ -5,15 +5,13 @@
     gap: 0.6rem;
     font-size: 0.75rem;
     color: var(--color-muted);
-    margin-block: 2.5rem 3.5rem;
+    min-block-size: 2.75rem;
+    margin-block: 1.75rem 2.75rem;
   }
 
   .article-heading .eyebrow {
     justify-content: space-between;
-  }
-
-  .sample-label {
-    margin-inline-start: 1rem;
+    flex-wrap: wrap;
   }
 
   .article-heading {
@@ -31,11 +29,7 @@
     flex-wrap: wrap;
     font-size: 0.75rem;
     color: var(--color-muted);
-    margin-block: 2rem 3rem;
-  }
-
-  .article-meta a {
-    text-decoration: underline;
+    margin-block: 1.75rem 2rem;
   }
 
   .missing-translation {
@@ -56,17 +50,27 @@
     padding-block-start: 2rem;
   }
 
+  .reading-layout > .prose {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
   .toc {
+    grid-column: 2;
+    grid-row: 1;
     position: sticky;
     inset-block-start: 2rem;
     align-self: start;
     color: var(--color-muted);
-    font-size: 0.72rem;
+    font-size: 0.85rem;
+    max-block-size: calc(100svh - 4rem);
+    overflow-y: auto;
+    scrollbar-width: thin;
   }
 
-  .toc p {
-    font-size: 0.65rem;
-    margin-block-end: 1rem;
+  .toc summary {
+    cursor: pointer;
+    padding-block: 0.5rem;
   }
 
   .toc ol {
@@ -75,9 +79,15 @@
     border-inline-start: 1px solid var(--color-rule);
   }
 
-  .toc li {
-    margin-block: 0.8rem;
-    padding-inline-start: 1rem;
+  .toc a {
+    display: block;
+    padding-block: 0.5rem;
+    padding-inline: 1rem 0.5rem;
+    border-inline-start: 2px solid transparent;
+  }
+
+  .toc a[aria-current="location"] {
+    border-inline-start-color: var(--color-accent);
   }
 
   .toc a:hover,
@@ -89,13 +99,22 @@
     margin-block-start: 5rem;
   }
 
-  @media (width < 75rem) {
+  @container page (width < 48rem) {
     .reading-layout {
       grid-template-columns: minmax(0, 1fr);
     }
 
+    .reading-layout > .prose {
+      grid-row: 2;
+    }
+
     .toc {
-      display: none;
+      grid-column: 1;
+      position: static;
+      padding-block: 0.5rem;
+      max-block-size: none;
+      overflow: visible;
+      border-block: 1px solid var(--color-rule);
     }
   }
 
@@ -107,7 +126,7 @@
 
   @media (width < 36rem) {
     .back-link {
-      margin-block: 2rem;
+      margin-block: 1.25rem 1.75rem;
     }
 
     .article-heading h1 {

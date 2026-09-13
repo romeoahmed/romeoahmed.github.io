@@ -1,12 +1,20 @@
+---
+import { createParticleField } from "../lib/particle-field";
+const particles = createParticleField(480);
+---
+
 <div class="spatial-figure" aria-hidden="true">
   <div class="spatial-scene" data-spatial-scene>
-    <div class="static-scene">
-      <i class="plane plane-back"></i>
-      <i class="plane plane-middle"></i>
-      <i class="plane plane-front"></i>
-    </div>
+    <svg class="static-scene" viewBox="-2.5 -2.5 5 5">
+      {particles.map(({ x, y, size, opacity }) => (
+        <circle
+          cx={x.toFixed(3)}
+          cy={(-y).toFixed(3)}
+          r={(size * 0.7).toFixed(3)}
+          opacity={opacity.toFixed(2)}
+        />
+      ))}
+    </svg>
     <div class="scene-stage"></div>
-    <span class="scene-axis axis-top">+</span>
-    <span class="scene-axis axis-bottom">+</span>
   </div>
 </div>

@@ -1,15 +1,16 @@
 ---
 import type { CollectionEntry } from "astro:content";
 import { dateLabel, type Locale } from "../i18n/locales";
-import { tagLabel } from "../i18n/tags";
+import { tagLabel, topicUrl } from "../i18n/tags";
 import { messages } from "../i18n/messages";
 import { postUrl, readingMinutes } from "../lib/publications";
-import Icon from "./Icon.astro";
+import { ArrowRight } from "@lucide/astro";
 interface Props {
   posts: readonly CollectionEntry<"posts">[];
   locale: Locale;
+  heading?: "h2" | "h3";
 }
-const { posts, locale } = Astro.props;
+const { posts, locale, heading: Heading = "h3" } = Astro.props;
 const t = messages[locale];
 ---
 
@@ -27,17 +28,19 @@ const t = messages[locale];
         </div>
         <div class="post-summary">
           <div class="post-kind">
-            {post.data.tags.map((tag) => tagLabel(tag, locale)).join(" / ")}
+            {post.data.tags.map((tag) => (
+              <a href={topicUrl(tag, locale)}>{tagLabel(tag, locale)}</a>
+            ))}
             {post.data.sample && <span>{t.sample}</span>}
           </div>
-          <h3>
+          <Heading>
             <a href={postUrl(post)}>
               <span class="post-title" data-title-key={post.id}>
                 {post.data.title}
               </span>
-              <Icon name="arrow" />
+              <ArrowRight />
             </a>
-          </h3>
+          </Heading>
           <p>{post.data.description}</p>
           <span class="read-time">
             {t.readingTime(readingMinutes(post.body ?? ""))}

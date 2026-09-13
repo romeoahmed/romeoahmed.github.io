@@ -11,3 +11,5 @@ export const tags = [
 export type Tag = (typeof tags)[number];
 export const tagLabel = (tag: Tag, locale: Locale) =>
   messages[locale].tags[tag];
+export const topicUrl = (tag: Tag, locale: Locale) =>
+  `/${locale}/topics/${tag}/`;

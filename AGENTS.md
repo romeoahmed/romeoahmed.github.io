@@ -1,23 +1,22 @@
 # Working on this blog
 
-This is one static Astro site for GitHub Pages, with English and Simplified Chinese editions. Read the relevant [architecture](docs/architecture.md), [design](docs/design.md), or [writing](docs/writing.md) section before changing its behavior. Keep documentation in English.
+One static Astro site for GitHub Pages, in English and Simplified Chinese. Read the relevant [architecture](docs/architecture.md), [design](docs/design.md), or [writing](docs/writing.md) section before editing.
 
-## Commands and checks
+## Commands and verification
 
-- Install dependencies: `pnpm install --frozen-lockfile`.
-- Start development: `pnpm dev --background`. Manage it with `pnpm astro dev status`, `pnpm astro dev logs`, and `pnpm astro dev stop`.
-- Run focused tests: `pnpm test --project unit` or `pnpm test --project browser`. Browser tests need Chromium (`pnpm exec playwright install --with-deps --no-shell chromium`) and a fresh `pnpm build` for output checks.
-- After code, configuration, or content changes, run `pnpm verify`. It includes the build before tests. For documentation-only edits, check formatting and links.
-- For visual changes, review production preview in the built-in browser: both languages and themes, narrow and wide layouts, keyboard input, and reduced motion. Check normal motion separately.
+- Install: `pnpm install --frozen-lockfile`.
+- Background development: `pnpm dev --background`. Use `pnpm astro dev status`, `logs`, and `stop` to manage it. Stop temporary servers when finished.
+- Focused tests: `pnpm test --project unit` or `pnpm test --project browser`. Browser tests require Chromium (`pnpm exec playwright install --with-deps --no-shell chromium`) and a fresh `pnpm build`.
+- Run `pnpm verify` after code, configuration, or content changes. For documentation-only edits, check formatting and links.
+- Review visual changes in the built-in browser using a production preview: both languages and themes, narrow and wide layouts, keyboard input, and normal and reduced motion.
 
-## Implementation rules
+## Boundaries
 
-- Consult the relevant official documentation before changing an integration. Use Astro’s guides for [routes](https://docs.astro.build/en/guides/routing/), [components](https://docs.astro.build/en/basics/astro-components/), [content](https://docs.astro.build/en/guides/content-collections/), [styles](https://docs.astro.build/en/guides/styling/), [i18n](https://docs.astro.build/en/guides/internationalization/), and [navigation](https://docs.astro.build/en/guides/view-transitions/).
-- Prefer platform and library APIs, recommended presets, and defaults. Add dependencies, abstractions, and directories only for implemented needs.
-- Keep TypeScript on 6.x. Use strict, erasable types, pure data transformations, and local mutable state for effects. Use `@types/web` without the bundled DOM library; tooling and tests also have Node types.
-- Keep translated interface copy in `src/i18n/` and writing in locale folders. Use shared Astro templates. Preserve the author’s name and motto; do not invent biographical claims.
-- Keep text and navigation usable before enhancement. Browser mounts must clean up listeners, observers, animations, and resources, including late async results.
-- Astro owns navigation and history; native View Transitions own route snapshots; GSAP owns local motion. Preserve title travel and the 520 ms recent-writing scroll when adjusting curves. See the design document for timing.
-- Use OKLCH directly. Newly Baseline capabilities are allowed; WebGPU is the explicit exception. Keep the static motif when GPU rendering is unavailable.
-- Write production behavior first, then small tests of meaningful contracts and failure paths. Vitest owns Node and Chromium projects through its Playwright provider.
-- Write concise English comments. Use TSDoc only for information names and types cannot convey. Keep machine-specific paths, review logs, and speculative plans out of project documentation.
+- Consult official documentation before changing an integration. Prefer native APIs, recommended presets, and defaults; add dependencies or abstractions only for implemented needs.
+- Keep TypeScript on 6.x with strict, erasable types. Prefer pure transformations and local state for effects. Use `@types/web` through the native library replacement configured in `tsconfig.app.json`; tooling and tests retain Node types.
+- Keep interface translations in `src/i18n/`, content in locale folders, and markup in shared Astro templates. Preserve **Romeo Ahmed** and **Keep it simple, stupid.**; do not invent biography.
+- Keep reading and navigation usable before enhancement. Dispose browser effects and late async results on navigation.
+- Astro owns navigation and history, View Transitions own snapshots, and GSAP owns local motion. Preserve title travel and the **520 ms** recent-writing scroll; follow the design timing table.
+- Use OKLCH directly and Newly Baseline platform features. WebGPU is the support exception; retain the static motif when unavailable.
+- Implement production behavior first, then small tests of contracts and failure paths. Vitest owns Node and Chromium through its Playwright provider.
+- Write concise English documentation and comments. Follow [TSDoc](https://tsdoc.org/) for callable contracts; explain units, ownership, or failure behavior rather than repeating types. Exclude local machine details, audit logs, and speculative plans.

@@ -1,4 +1,5 @@
 ---
+import { ArrowRight } from "@lucide/astro";
 import Page from "../layouts/Page.astro";
 import { messages } from "../i18n/messages";
 import { locales, localeInfo, home } from "../i18n/locales";
@@ -15,7 +16,7 @@ import { site } from "../lib/site";
     <div class="error-links">
       {locales.map((locale) => (
         <a href={home(locale)} lang={localeInfo[locale].tag}>
-          {localeInfo[locale].label} →
+          {localeInfo[locale].label} <ArrowRight />
         </a>
       ))}
     </div>

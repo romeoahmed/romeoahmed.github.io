@@ -1,10 +1,10 @@
 # Writing
 
-Use Markdown for ordinary writing and MDX when a piece needs an Astro component. Posts hold articles, essays, and diary entries; notes appear together in a chronological stream.
+Use Markdown for prose and MDX for pieces that embed Astro components. Posts hold articles, essays, and diary entries; notes share a chronological stream.
 
 ## Add a piece
 
-Create a file in `src/content/posts/en/`, `src/content/posts/zh-hans/`, or the corresponding `src/content/notes/` folder.
+Create a file under `src/content/posts/{locale}/` or `src/content/notes/{locale}/`, where the locale is `en` or `zh-hans`.
 
 ```yaml
 ---
@@ -18,31 +18,43 @@ draft: true
 ---
 ```
 
-Only `draft` is optional in this example. Use lowercase words joined by hyphens for `slug` and `translationKey`; the locale must match the folder. Keep slugs stable after publication. Posts receive their own URL; note slugs become fragments on the notes page.
+Only `draft` is optional here. Slugs and translation keys use lowercase words joined by hyphens; the locale must match the folder. Keep public slugs stable. Posts receive separate URLs; note slugs become fragments.
 
-| Optional field | Use                                                                      |
-| -------------- | ------------------------------------------------------------------------ |
-| `updatedAt`    | Date of a revision, displayed on articles                                |
-| `tags`         | Topic IDs from [tags.ts](../src/i18n/tags.ts); defaults to an empty list |
-| `draft`        | Exclude from public output; defaults to `false`                          |
-| `sample`       | Show the example label; defaults to `false`                              |
-| `license`      | Defaults to `CC-BY-NC-SA-4.0`, the only accepted value                   |
+| Optional field | Meaning                                                |
+| -------------- | ------------------------------------------------------ |
+| `updatedAt`    | Revision date, displayed on articles                   |
+| `tags`         | IDs from [tags.ts](../src/i18n/tags.ts); default `[]`  |
+| `draft`        | Exclude from public output; default `false`            |
+| `sample`       | Display the sample label; default `false`              |
+| `license`      | Defaults to the only accepted value, `CC-BY-NC-SA-4.0` |
 
-Use `YYYY-MM-DD` dates. A future date does **not** schedule publication. Remove `draft: true` when ready; published entries appear newest first in the appropriate index and RSS feed. The [schema](../src/content.config.ts) is the field authority.
+Use `YYYY-MM-DD` dates. Future dates do **not** schedule publication; `draft` controls visibility. The [content schema](../src/content.config.ts) is authoritative.
 
-## Translate a piece
+## Translate
 
-Add a separate file in the other locale folder with the same `translationKey`. Translate the title, description, and body naturally; the slug and dates may differ. Posts link to published counterparts and explain when one is missing. Notes switch between localized streams.
+Add a file in the other locale folder with the same descriptive filename and `translationKey`. Translate the title, description, and body naturally; slugs and dates may differ. The filename organizes source, the key links translations, and the slug determines the URL. Articles link to published counterparts; notes switch between edition streams.
 
-Interface text belongs in `src/i18n/en.ts` and `src/i18n/zh-hans.ts`, not in article frontmatter or bilingual template conditionals.
+Interface copy belongs in `src/i18n/en.ts` and `src/i18n/zh-hans.ts`. Follow the [voice guidance](design.md#language-and-voice).
 
-## Code, math, and diagrams
+## Code and math
 
-Name the language on fenced code blocks, such as `ts`, `css`, or `sh`. Highlighting and language labels are generated automatically; copy controls appear when supported.
+Specify a language on code fences, such as `ts`, `css`, or `sh`. Expressive Code supplies highlighting, copy controls, frames, and markers.
 
-Use `$…$` for inline math and `$$…$$` on separate lines for display math. Temml renders formulas at build time with STIX Two Math. Invalid TeX fails the build. Macros are scoped to one source document. Equation references such as `\eqref{label}` need JavaScript; keep equation labels unique across notes sharing a page.
+| Fence metadata          | Use                                   |
+| ----------------------- | ------------------------------------- |
+| `title="example.ts"`    | Show a filename                       |
+| `{2-4}`                 | Highlight lines                       |
+| `ins={3}` / `del={2}`   | Mark additions or removals            |
+| `showLineNumbers=false` | Hide numbering for a short snippet    |
+| `startLineNumber=10`    | Start an excerpt at its original line |
 
-Use ordinary Mermaid fences in either format. Include an accessible title, description, and surrounding prose that explains the diagram:
+See [frames](https://expressive-code.com/key-features/frames/), [markers](https://expressive-code.com/key-features/text-markers/), and [line numbers](https://expressive-code.com/plugins/line-numbers/). These work in Markdown and MDX.
+
+Use `$…$` for inline math and `$$…$$` on separate lines for display math. Invalid TeX fails the build; macros are document-scoped. Equation references such as `\eqref{label}` need JavaScript. Keep labels unique across notes sharing a page.
+
+## Diagrams and components
+
+Mermaid fences work in either format. Supply an accessible title and description, and explain the diagram in surrounding prose:
 
 ````md
 ```mermaid
@@ -53,9 +65,9 @@ flowchart LR
 ```
 ````
 
-Diagrams render in the browser and follow the site’s theme. Without enhancement, readers see the source.
+Diagrams render in the browser; without enhancement, readers see the source.
 
-An MDX file can import a component directly. From a locale content folder:
+From a locale content folder, MDX can import an Astro component:
 
 ```mdx
 import EasingExperiment from "../../../components/EasingExperiment.astro";
@@ -63,10 +75,27 @@ import EasingExperiment from "../../../components/EasingExperiment.astro";
 <EasingExperiment locale="en" />
 ```
 
-Use `locale="zh-hans"` in Chinese writing. MDX is executable repository content; only add trusted source.
+Use `locale="zh-hans"` for Chinese. MDX executes at build time; only add trusted source.
 
-## Before publishing
+## Images and supporting detail
 
-Run `pnpm verify`, then review the built site with `pnpm preview`. Check links, title wrapping, code, math, and diagrams in the piece’s language and both themes. Existing example pieces carry `sample: true`; replace their content before removing that label. Some output tests use these examples as fixtures, so update those checks when replacing them.
+Store images in `src/` for Astro optimization. Markdown accepts ordinary image syntax. For a caption in MDX:
 
-Text uses CC BY-NC-SA 4.0; project code and code examples use MIT. Templates display both terms automatically. See the [license scope](../README.md#license) for third-party exceptions.
+```mdx
+import Figure from "../../../components/Figure.astro";
+import image from "../../../assets/spacing.webp";
+
+<Figure src={image} alt="Two layouts with different paragraph spacing.">
+  The same text, with more room between paragraphs on the right.
+</Figure>
+```
+
+Alt text describes what matters in the image; captions add context or attribution. Astro supplies dimensions and responsive sources. A native `<details>` and descriptive `<summary>` can hold a supporting derivation without interrupting the main argument.
+
+Tags generate topic pages. Search, related reading, RSS, and sharing cards use existing content and metadata; no extra publication steps are needed.
+
+## Publish
+
+Remove `draft: true`, run `pnpm verify`, and review `pnpm preview`. Check title wrapping, links, search, code, math, diagrams, and sharing cards in both themes. Samples retain `sample: true` until replaced; update any output tests that use them as fixtures.
+
+Templates display the licenses automatically: CC BY-NC-SA 4.0 for text, MIT for code. See [license scope](../README.md#license).

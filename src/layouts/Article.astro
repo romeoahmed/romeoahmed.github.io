@@ -1,14 +1,21 @@
 ---
+import "../styles/article.css";
 import type { CollectionEntry } from "astro:content";
 import type { MarkdownHeading } from "astro";
 import Page from "./Page.astro";
 import PostList from "../components/PostList.astro";
-import Icon from "../components/Icon.astro";
+import License from "../components/License.astro";
+import { ArrowLeft, ArrowRight } from "@lucide/astro";
 import { localeInfo, dateLabel } from "../i18n/locales";
-import { tagLabel } from "../i18n/tags";
+import { tagLabel, topicUrl } from "../i18n/tags";
 import { messages } from "../i18n/messages";
 import { getPosts } from "../lib/collections";
-import { counterpart, postUrl, readingMinutes } from "../lib/publications";
+import {
+  counterpart,
+  postUrl,
+  readingMinutes,
+  relatedPosts,
+} from "../lib/publications";
 import { site } from "../lib/site";
 interface Props {
   post: CollectionEntry<"posts">;
@@ -22,11 +29,7 @@ const translation = counterpart(post, posts, localeInfo[locale].other);
 const sections = headings.filter(
   ({ depth, slug }) => depth === 2 && slug !== "footnote-label",
 );
-const related = posts
-  .values()
-  .filter((entry) => entry.data.locale === locale && entry.id !== post.id)
-  .take(2)
-  .toArray();
+const related = relatedPosts(post, posts);
 const alternates = [post, translation]
   .filter((entry) => entry !== undefined)
   .map((entry) => ({ locale: entry.data.locale, url: postUrl(entry) }));
@@ -39,17 +42,20 @@ const alternates = [post, translation]
   alternates={alternates}
   languageUrl={translation ? postUrl(translation) : undefined}
   missingTranslation={!translation}
+  article={post.data}
 >
-  <article class="article-page">
-    <a class="back-link" href={`/${locale}/`}>
-      <Icon name="back" />
+  <article data-pagefind-body>
+    <a class="back-link" href={`/${locale}/`} data-pagefind-ignore>
+      <ArrowLeft />
       {t.back}
     </a>
     <header class="article-heading">
-      <div class="eyebrow">
-        <span>
-          {post.data.tags.map((tag) => tagLabel(tag, locale)).join(" / ")}{" "}
-          {post.data.sample && <span class="sample-label">{t.sample}</span>}
+      <div class="eyebrow" data-pagefind-ignore>
+        <span class="topic-links">
+          {post.data.tags.map((tag) => (
+            <a href={topicUrl(tag, locale)}>{tagLabel(tag, locale)}</a>
+          ))}
+          {post.data.sample && <span>{t.sample}</span>}
         </span>
         <span>{t.readingTime(readingMinutes(post.body ?? ""))}</span>
       </div>
@@ -59,7 +65,7 @@ const alternates = [post, translation]
         </span>
       </h1>
       <p class="lead">{post.data.description}</p>
-      <div class="article-meta">
+      <div class="article-meta" data-pagefind-ignore>
         <span>{site.author}</span>
         <span aria-hidden="true">/</span>
         <time datetime={post.data.publishedAt.toISOString()}>
@@ -76,42 +82,33 @@ const alternates = [post, translation]
       </div>
     </header>
     {!translation && (
-      <p class="missing-translation">
+      <p class="missing-translation" data-pagefind-ignore>
         {t.unavailable}{" "}
-        <a href={`/${localeInfo[locale].other}/`}>{t.otherArchive} →</a>
+        <a href={`/${localeInfo[locale].other}/`}>
+          {t.otherArchive} <ArrowRight />
+        </a>
       </p>
     )}
     <div class="reading-layout">
+      {sections.length > 1 && (
+        <details class="toc" open data-pagefind-ignore>
+          <summary>{t.contents}</summary>
+          <nav aria-label={t.contents}>
+            <ol>
+              {sections.map((heading) => (
+                <li>
+                  <a href={`#${heading.slug}`}>{heading.text}</a>
+                </li>
+              ))}
+            </ol>
+          </nav>
+        </details>
+      )}
       <div class="prose">
         <slot />
       </div>
-      {sections.length > 1 && (
-        <nav class="toc" aria-label={t.contents}>
-          <p>{t.contents}</p>
-          <ol>
-            {sections.map((heading) => (
-              <li>
-                <a href={`#${heading.slug}`}>{heading.text}</a>
-              </li>
-            ))}
-          </ol>
-        </nav>
-      )}
     </div>
-    <p class="article-meta">
-      <span>
-        {t.textLicense}:{" "}
-        <a
-          href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
-          rel="license"
-        >
-          {post.data.license}
-        </a>
-      </span>
-      <span>
-        {t.codeLicense}: <a href="https://opensource.org/license/mit">MIT</a>
-      </span>
-    </p>
+    <License locale={locale} license={post.data.license} />
   </article>
   {related.length > 0 && (
     <section class="related-section">

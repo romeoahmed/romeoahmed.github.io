@@ -16,7 +16,7 @@
     flex-direction: column;
     gap: 0.6rem;
     color: var(--color-muted);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
   }
 
   .note .prose h2 {

@@ -1,9 +1,9 @@
 import { gsap } from "gsap";
 
 /**
- * Mounts link feedback and, on the first page, the entrance animation.
+ * Adds link and dialog feedback, with text reveals on first load only.
  *
- * @returns Cleanup that removes listeners and reverts GSAP styles.
+ * @returns Removes listeners and reverts animation styles.
  */
 export function mountMotion(firstPage: boolean) {
   const media = gsap.matchMedia();
@@ -12,7 +12,7 @@ export function mountMotion(firstPage: boolean) {
     for (const [selector, arrowSelector, axis, distance] of [
       [".hero-link", ".text-link-arrow", "y", 3],
       [".back-link", "svg", "x", -3],
-      [".post-summary h3 a", "svg", "x", 5],
+      [".post-summary :is(h2, h3) a", "svg", "x", 5],
     ] as const) {
       document.querySelectorAll<HTMLElement>(selector).forEach((link) => {
         const arrow = link.querySelector(arrowSelector);
@@ -45,6 +45,31 @@ export function mountMotion(firstPage: boolean) {
         link.addEventListener("blur", update, { signal: controller.signal });
       });
     }
+    document
+      .querySelectorAll<HTMLDialogElement>("dialog.search-dialog")
+      .forEach((dialog) => {
+        const entrance = gsap.fromTo(
+          dialog,
+          { y: 10, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.32,
+            ease: "power3.out",
+            paused: true,
+            immediateRender: false,
+            clearProps: "transform,opacity",
+          },
+        );
+        dialog.addEventListener(
+          "toggle",
+          () => {
+            if (dialog.open) entrance.restart();
+            else entrance.pause().revert({ kill: false });
+          },
+          { signal: controller.signal },
+        );
+      });
     if (!firstPage) return () => controller.abort();
     const visible = document
       .querySelectorAll<HTMLElement>("[data-reveal]")

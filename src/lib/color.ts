@@ -1,10 +1,10 @@
 /**
  * Converts OKLCH to linear sRGB without gamut clipping.
  *
- * @param lightness - Normalized lightness, where 1 is white.
- * @param chroma - Absolute OKLCH chroma, not a percentage.
+ * @param lightness - OKLCH lightness on a 0–1 scale.
+ * @param chroma - OKLCH chroma as a number, not a percentage.
  * @param hue - Hue angle in degrees.
- * @returns Linear red, green, and blue channels, which may fall outside 0–1.
+ * @returns Unclipped linear sRGB channels; values can fall outside 0–1.
  */
 export function oklchToLinearRgb(
   lightness: number,
@@ -28,23 +28,22 @@ export function oklchToLinearRgb(
  * Parses the site's opaque OKLCH tokens into linear sRGB.
  *
  * @remarks
- * Accepts nonnegative decimal channels: numeric or percentage lightness,
- * numeric chroma, and hue in degrees with an optional `deg` suffix.
- * This is a token parser, not a general CSS color parser.
+ * Accepts nonnegative decimals: lightness as a number or percentage,
+ * numeric chroma, and hue with optional `deg`. Alpha and CSS expressions are unsupported.
  *
- * @throws Error if the token does not match this syntax.
+ * @throws Error for an unsupported token.
  */
 export function cssColorToLinear(value: string): [number, number, number] {
   const match =
     /^oklch\(\s*([\d.]+)(%)?\s+([\d.]+)\s+([\d.]+)(?:deg)?\s*\)$/.exec(
       value.trim(),
     );
-  if (!match) throw new Error(`Expected an opaque OKLCH token: ${value}`);
-  return oklchToLinearRgb(
-    Number(match[1]) / (match[2] ? 100 : 1),
-    Number(match[3]),
-    Number(match[4]),
-  );
+  const lightness = Number(match?.[1]);
+  const chroma = Number(match?.[3]);
+  const hue = Number(match?.[4]);
+  if (!match || ![lightness, chroma, hue].every(Number.isFinite))
+    throw new Error(`Expected an opaque OKLCH token: ${value}`);
+  return oklchToLinearRgb(lightness / (match[2] ? 100 : 1), chroma, hue);
 }
 
 /** Converts a site OKLCH token to gamut-clipped sRGB hex for Mermaid themes. */

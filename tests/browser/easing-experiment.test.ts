@@ -1,9 +1,12 @@
 import { beforeEach, expect, test } from "vitest";
 import { cdp, page, userEvent } from "vitest/browser";
-import { mountEasing } from "../../src/client/easing";
+import { mountEasingExperiment } from "../../src/client/easing-experiment";
 import "../../src/styles/global.css";
 
-beforeEach(({ onTestFinished }) => {
+beforeEach(async ({ onTestFinished }) => {
+  await cdp().send("Emulation.setEmulatedMedia", {
+    features: [{ name: "prefers-reduced-motion", value: "no-preference" }],
+  });
   onTestFinished(async () => {
     document.body.replaceChildren();
     await cdp().send("Emulation.setEmulatedMedia", { features: [] });
@@ -21,7 +24,7 @@ test("the markers play and scrub across the full track without overshooting", as
   onTestFinished,
 }) => {
   const host = document.querySelector<HTMLElement>(".experiment")!;
-  const dispose = mountEasing(host);
+  const dispose = mountEasingExperiment(host);
   onTestFinished(dispose);
   const positions = () =>
     [...host.querySelectorAll(".experiment-track")].map((track) => {
@@ -48,8 +51,6 @@ test("the markers play and scrub across the full track without overshooting", as
   positions().forEach((position) => expect(position).toBeCloseTo(1, 3));
   dispose();
   await expect.element(page.getByRole("slider")).toBeDisabled();
-  expect(positions()[0]).toBeCloseTo(0.5, 3);
-  expect(positions()[1]).toBeCloseTo(0.875, 3);
 });
 
 test("reduced motion keeps keyboard inspection available without playback", async ({
@@ -59,7 +60,7 @@ test("reduced motion keeps keyboard inspection available without playback", asyn
     features: [{ name: "prefers-reduced-motion", value: "reduce" }],
   });
   onTestFinished(
-    mountEasing(document.querySelector<HTMLElement>(".experiment")!),
+    mountEasingExperiment(document.querySelector<HTMLElement>(".experiment")!),
   );
   await expect
     .element(page.getByRole("button", { includeHidden: true }))

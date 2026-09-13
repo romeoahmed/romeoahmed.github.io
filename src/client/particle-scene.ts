@@ -1,11 +1,10 @@
 import {
   addToScene,
-  createBox,
+  createPlane,
   createEngine,
   createFreeCamera,
   createSceneContext,
   createShaderMaterial,
-  createTransformNode,
   disposeEngine,
   disposeScene,
   enableAsyncShaderPipelineCompilation,
@@ -15,50 +14,83 @@ import {
   renderFrame,
   resizeEngine,
   setShaderVector3,
+  setShaderFloat,
+  setThinInstances,
+  setThinInstanceColors,
   type DeviceLostRecoveryHandle,
   type EngineContext,
   type SceneContext,
 } from "@babylonjs/lite";
 import { gsap } from "gsap";
 import { cssColorToLinear } from "../lib/color";
+import { createParticleField } from "../lib/particle-field";
 
 const varyings = `
 struct VertexOutput {
   @builtin(position) position: vec4f,
-  @location(0) gradient: f32,
+  @location(0) uv: vec2f,
+  @location(1) light: f32,
+  @location(2) opacity: f32,
 }`;
 
-function panelMaterial() {
+function particleMaterial() {
   return createShaderMaterial({
     vertexSource: `${varyings}
       @vertex fn mainVertex(input: VertexInput) -> VertexOutput {
+        var center = (shaderSystem.world * input.world3).xyz;
+        center *= shaderUniforms.spread;
+        let delta = center.xy - shaderUniforms.pointer.xy;
+        let distanceSquared = dot(delta, delta);
+        let influence = exp(-distanceSquared * 2.2) * shaderUniforms.pointer.z;
+        let direction = delta * inverseSqrt(max(distanceSquared, 0.04));
+        center += vec3f(
+          (direction * 0.28 + vec2f(-direction.y, direction.x) * 0.12) * influence,
+          -0.22 * influence,
+        );
+        // Face quads toward the camera so field rotation does not flatten the particles.
+        // Keep a two-pixel minimum diameter across the five-unit camera height.
+        let size = max(input.world0.x, 10.0 / shaderSystem.screenSize.y)
+          * (1.0 + influence * 0.35);
+        let position = center + vec3f(input.position.xy * size, 0.0);
         return VertexOutput(
-          shaderSystem.worldViewProjection * vec4f(input.position, 1.0),
-          dot(input.uv, vec2f(0.2, 0.8)),
+          shaderSystem.viewProjection * vec4f(position, 1.0),
+          input.uv * 2.0 - 1.0,
+          smoothstep(-1.5, 1.5, -center.z) * 0.65 + influence * 0.2,
+          input.instanceColor.a,
         );
       }`,
     fragmentSource: `${varyings}
       @fragment fn mainFragment(input: VertexOutput) -> @location(0) vec4f {
-        // Curve the interpolated gradient per fragment, not per vertex.
-        let light = smoothstep(0.0, 1.0, input.gradient);
-        return vec4f(mix(shaderUniforms.shade, shaderUniforms.surface, light), 1.0);
+        let radius = length(input.uv);
+        let edge = max(fwidth(radius), 0.08);
+        let coverage = 1.0 - smoothstep(1.0 - edge, 1.0, radius);
+        let color = mix(shaderUniforms.accent, shaderUniforms.ink, input.light);
+        return vec4f(color, coverage * input.opacity);
       }`,
     attributes: ["position", "uv"],
     uniforms: [
-      "worldViewProjection",
-      { name: "surface", type: "vec3<f32>" },
-      { name: "shade", type: "vec3<f32>" },
+      "world",
+      "viewProjection",
+      "screenSize",
+      { name: "accent", type: "vec3<f32>" },
+      { name: "ink", type: "vec3<f32>" },
+      { name: "pointer", type: "vec3<f32>" },
+      { name: "spread", type: "f32", defaultValue: 1 },
     ],
+    needAlphaBlending: true,
   });
 }
 
 /**
- * Mounts the WebGPU scene and renders frames only when its appearance changes.
+ * Renders the particle field on demand, retaining the SVG until the first frame.
  *
- * @param signal - Page lifetime; canceled initialization is disposed when it completes.
- * @returns Cleanup that releases GPU resources, observers, and animation state.
+ * @param signal - Page lifetime; releases initialization results that arrive after cancellation.
+ * @returns Releases GPU resources, observers, and animations.
  */
-export async function mountScene(host: HTMLElement, signal: AbortSignal) {
+export async function mountParticleScene(
+  host: HTMLElement,
+  signal: AbortSignal,
+) {
   const stage = host.querySelector(".scene-stage");
   if (!stage || signal.aborted || !navigator.gpu) return () => {};
   const canvas = document.createElement("canvas");
@@ -114,7 +146,6 @@ export async function mountScene(host: HTMLElement, signal: AbortSignal) {
   try {
     stage.append(canvas);
     const gpu = await createEngine(canvas, {
-      alphaMode: "premultiplied",
       srgb: true,
       maxDevicePixelRatio: 1.75,
     });
@@ -125,7 +156,7 @@ export async function mountScene(host: HTMLElement, signal: AbortSignal) {
     }
     signal.addEventListener("abort", dispose, { once: true });
     enableAsyncShaderPipelineCompilation(gpu);
-    // Enable recovery before mesh creation so Lite retains geometry for rebuilding.
+    // Enable recovery before creating geometry so Lite can rebuild it after device loss.
     recovery = enableDeviceLostSceneRecovery(gpu, {
       onLost: () => {
         ready = false;
@@ -140,85 +171,55 @@ export async function mountScene(host: HTMLElement, signal: AbortSignal) {
       onRecoveryFailed: dispose,
     });
     scene = createSceneContext(gpu);
-    scene.clearColor = { r: 0, g: 0, b: 0, a: 0 };
+    const background = { r: 0, g: 0, b: 0, a: 1 };
+    scene.clearColor = background;
     const camera = createFreeCamera(
-      { x: 6, y: 4, z: -10 },
+      { x: 0, y: 0, z: -8 },
       { x: 0, y: 0, z: 0 },
     );
     const bounds = enableOrthographicCamera(camera);
     scene.camera = camera;
-    const group = createTransformNode("pages");
-    group.rotation.z = 0.13;
-    const material = panelMaterial();
-    const edgeMaterial = panelMaterial();
-    const lineMaterial = panelMaterial();
-    const panels = Array.from({ length: 3 }, (_, i) => {
-      const panel = createBox(gpu, {
-        width: 2.35,
-        height: 3.2,
-        depth: 0.045,
-      });
-      panel.material = material;
-      panel.position.set((i - 1) * 0.43, (i - 1) * 0.14, (i - 1) * 0.7);
-      group.children.push(panel);
-      if (i === 0) {
-        const edge = createBox(gpu, {
-          width: 0.012,
-          height: 3.2,
-          depth: 0.05,
-        });
-        edge.material = edgeMaterial;
-        edge.position.x = -1.175;
-        panel.children.push(edge);
-        for (const y of [-1.12, 1.12]) {
-          const line = createBox(gpu, {
-            width: 1.6,
-            height: 0.007,
-            depth: 0.005,
-          });
-          line.material = lineMaterial;
-          line.position.set(0, y, -0.026);
-          panel.children.push(line);
-        }
-      }
-      return panel;
+    const material = particleMaterial();
+    const particles = createParticleField(1800);
+    const mesh = createPlane(gpu);
+    mesh.material = material;
+    const matrices = new Float32Array(particles.length * 16);
+    const colors = new Float32Array(particles.length * 4);
+    particles.forEach(({ x, y, z, size, opacity }, i) => {
+      matrices.set(
+        [size, 0, 0, 0, 0, size, 0, 0, 0, 0, size, 0, x, y, z, 1],
+        i * 16,
+      );
+      colors.set([1, 1, 1, opacity], i * 4);
     });
-    addToScene(scene, group);
+    setThinInstances(mesh, matrices, particles.length);
+    setThinInstanceColors(mesh, colors);
+    addToScene(scene, mesh);
     const syncColor = () => {
       const css = getComputedStyle(document.documentElement);
       const color = (name: string) =>
         cssColorToLinear(css.getPropertyValue(`--color-${name}`));
-      const surface = color("surface"),
-        shade = color("depth"),
-        accent = color("accent");
-      setShaderVector3(material, "surface", surface);
-      setShaderVector3(material, "shade", shade);
-      const lineColor: [number, number, number] = [
-        surface[0] * 0.8 + accent[0] * 0.2,
-        surface[1] * 0.8 + accent[1] * 0.2,
-        surface[2] * 0.8 + accent[2] * 0.2,
-      ];
-      for (const key of ["surface", "shade"]) {
-        setShaderVector3(edgeMaterial, key, accent);
-        setShaderVector3(lineMaterial, key, lineColor);
-      }
+      const [r, g, b] = color("page");
+      Object.assign(background, { r, g, b });
+      setShaderVector3(material, "accent", color("accent"));
+      setShaderVector3(material, "ink", color("text"));
       invalidate();
     };
     const size = () => {
       const { width, height } = host.getBoundingClientRect();
       if (!width || !height) return;
       resizeEngine(gpu);
-      bounds.left = (-2.7 * width) / height;
+      bounds.left = (-2.5 * width) / height;
       bounds.right = -bounds.left;
-      bounds.top = 2.7;
-      bounds.bottom = -2.7;
+      bounds.top = 2.5;
+      bounds.bottom = -2.5;
       invalidate();
     };
     size();
-    syncColor();
     await registerScene(scene);
     if (disposed) return dispose;
     ready = true;
+    syncColor();
     resize = new ResizeObserver(size);
     resize.observe(host);
     theme = new MutationObserver(syncColor);
@@ -262,54 +263,67 @@ export async function mountScene(host: HTMLElement, signal: AbortSignal) {
             0,
           );
         if (host.hasAttribute("data-scene-ready")) appearance.progress(1);
-        const pose = { x: 0, y: 0, spread: 1 };
+        const pose = { x: 0, y: 0, strength: 0, spread: 1 };
         const update = () => {
-          group.rotation.set(pose.x, pose.y, 0.13);
-          panels.forEach((panel, i) => {
-            panel.position.z = (i - 1) * 0.7 * pose.spread;
-          });
+          mesh.rotation.set(-pose.y * 0.045, pose.x * 0.08, 0);
+          setShaderVector3(material, "pointer", [
+            pose.x,
+            pose.y,
+            pose.strength,
+          ]);
+          setShaderFloat(material, "spread", pose.spread);
           invalidate();
         };
         if (animate) {
           gsap.from(pose, {
-            spread: 0.72,
-            duration: 1.05,
-            ease: "power2.inOut",
-            onUpdate: update,
-          });
-          const x = gsap.quickTo(pose, "x", {
-            duration: 0.38,
+            spread: 1.12,
+            duration: 0.95,
             ease: "power2.out",
             onUpdate: update,
           });
-          const y = gsap.quickTo(pose, "y", {
-            duration: 0.38,
-            ease: "power2.out",
-            onUpdate: update,
-          });
+          const follow = (property: "x" | "y" | "strength") =>
+            gsap.quickTo(pose, property, {
+              duration: property === "strength" ? 0.72 : 0.52,
+              ease: "power3.out",
+              onUpdate: update,
+            });
+          const x = follow("x"),
+            y = follow("y"),
+            strength = follow("strength");
+          const reset = () => {
+            x(0);
+            y(0);
+            strength(0);
+          };
+          const point = (event: PointerEvent) => {
+            if (!event.isPrimary || document.hidden || !visible) return;
+            const rect = host.getBoundingClientRect();
+            x(
+              (((event.clientX - rect.left) / rect.width) * 2 - 1) *
+                ((2.5 * rect.width) / rect.height),
+            );
+            y((1 - ((event.clientY - rect.top) / rect.height) * 2) * 2.5);
+            strength(1 + event.pressure * 0.35);
+          };
+          const options = { signal: events.signal, passive: true };
+          host.addEventListener("pointermove", point, options);
+          host.addEventListener("pointerdown", point, options);
+          host.addEventListener("pointerleave", reset, options);
+          host.addEventListener("pointercancel", reset, options);
           host.addEventListener(
-            "pointermove",
+            "pointerup",
             (event) => {
-              if (event.pointerType !== "mouse") return;
-              const rect = host.getBoundingClientRect();
-              x(((event.clientY - rect.top) / rect.height - 0.5) * 0.1);
-              y(((event.clientX - rect.left) / rect.width - 0.5) * 0.16);
+              if (event.pointerType !== "mouse") reset();
+              else strength(1);
             },
-            { signal: events.signal },
+            options,
           );
-          host.addEventListener(
-            "pointerleave",
-            () => {
-              x(0);
-              y(0);
-            },
-            { signal: events.signal },
-          );
+          window.addEventListener("blur", reset, options);
         }
         update();
         return () => {
           events.abort();
-          pose.x = pose.y = 0;
+          pose.x = pose.y = pose.strength = 0;
           pose.spread = 1;
           update();
         };

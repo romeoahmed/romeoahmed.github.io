@@ -5,9 +5,9 @@ import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 gsap.registerPlugin(ScrollToPlugin);
 
 /**
- * Animates same-page anchor activation while Astro records navigation history.
+ * Animates fragment links while Astro owns navigation and history.
  *
- * @returns Cleanup that removes listeners and cancels pending scroll work.
+ * @returns Cancels pending navigation work and active scrolling, then removes listeners.
  */
 export function mountAnchors() {
   const controller = new AbortController();
@@ -70,7 +70,7 @@ export function mountAnchors() {
           start + target.getBoundingClientRect().top - inset,
         ),
       );
-      // Undo Astro's immediate scroll before paint so GSAP starts at the click position.
+      // Restore the click position before paint; Astro has already scrolled to the fragment.
       void navigate(url.href, { sourceElement: link }).then(() => {
         if (controller.signal.aborted || current !== request || media.matches)
           return;
@@ -96,7 +96,7 @@ export function mountAnchors() {
   window.addEventListener(
     "popstate",
     () => {
-      // Ignore the popstate emitted by our own fragment navigation.
+      // Ignore the popstate from this fragment navigation.
       if (location.href !== destination) stop();
     },
     { signal: controller.signal },

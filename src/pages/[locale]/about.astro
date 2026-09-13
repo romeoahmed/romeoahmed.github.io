@@ -1,5 +1,7 @@
 ---
+import "../../styles/about.css";
 import type { InferGetStaticPropsType } from "astro";
+import { ArrowUpRight } from "@lucide/astro";
 import Mark from "../../components/Mark.astro";
 import Page from "../../layouts/Page.astro";
 import { localePaths, localeInfo, locales } from "../../i18n/locales";
@@ -15,7 +17,6 @@ const t = messages[locale];
   locale={locale}
   title={`${t.about} — ${site.author}`}
   description={t.aboutIntro}
-  section="about"
   languageUrl={`/${localeInfo[locale].other}/about/`}
   alternates={locales.map((locale) => ({ locale, url: `/${locale}/about/` }))}
 >
@@ -38,9 +39,13 @@ const t = messages[locale];
       <p>{t.aboutDetail}</p>
       <h2>{t.elsewhere}</h2>
       <p>
-        <a href={site.github}>GitHub ↗</a>
+        <a href={site.github}>
+          GitHub <ArrowUpRight />
+        </a>
         <br />
-        <a href={`/${locale}/rss.xml`}>{t.feed} ↗</a>
+        <a href={`/${locale}/rss.xml`}>
+          {t.feed} <ArrowUpRight />
+        </a>
       </p>
     </div>
     <div class="about-mark" aria-hidden="true">

@@ -1,5 +1,5 @@
 import { expect, test, vi } from "vitest";
-import { page } from "vitest/browser";
+import { cdp, page } from "vitest/browser";
 import { applyTheme, mountTheme } from "../../src/client/theme";
 
 test("theme choice restores, cycles, and survives unavailable storage and page changes", async ({
@@ -11,12 +11,13 @@ test("theme choice restores, cycles, and survives unavailable storage and page c
     <span data-theme-label></span>
   </button>`;
   let dispose = mountTheme();
-  onTestFinished(() => {
+  onTestFinished(async () => {
     dispose();
     vi.restoreAllMocks();
     localStorage.removeItem("theme");
     document.documentElement.removeAttribute("data-theme");
     document.body.replaceChildren();
+    await cdp().send("Emulation.setEmulatedMedia", { features: [] });
   });
   const button = page.getByRole("button");
   await expect.element(button).toHaveAccessibleName("配色主题: 深色");
@@ -26,9 +27,23 @@ test("theme choice restores, cycles, and survives unavailable storage and page c
   expect(document.documentElement.dataset["theme"]).toBe(
     matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
   );
+  for (const scheme of ["dark", "light"]) {
+    await cdp().send("Emulation.setEmulatedMedia", {
+      features: [{ name: "prefers-color-scheme", value: scheme }],
+    });
+    await expect
+      .element(document.documentElement)
+      .toHaveAttribute("data-theme", scheme);
+    await expect.element(button).toHaveAccessibleName("配色主题: 跟随系统");
+  }
   await button.click();
   await expect.element(button).toHaveAccessibleName("配色主题: 浅色");
   expect(localStorage.getItem("theme")).toBe("light");
+  await cdp().send("Emulation.setEmulatedMedia", {
+    features: [{ name: "prefers-color-scheme", value: "dark" }],
+  });
+  await expect.element(button).toHaveAccessibleName("配色主题: 浅色");
+  expect(document.documentElement.dataset["theme"]).toBe("light");
 
   dispose();
   dispose = mountTheme();

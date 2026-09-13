@@ -15,12 +15,12 @@ function themePreference(): Preference {
     const value = localStorage.getItem("theme");
     if (value === "light" || value === "dark") return value;
   } catch {
-    // Use the system preference when storage is unavailable.
+    // Storage is optional; fall back to the system theme.
   }
   return "system";
 }
 
-/** Applies the preference to a document, including one awaiting an Astro swap. */
+/** Applies the saved or session preference, including to Astro's incoming document. */
 export function applyTheme(target: Document = document) {
   target.documentElement.dataset["theme"] = resolveTheme(
     themePreference(),
@@ -29,9 +29,9 @@ export function applyTheme(target: Document = document) {
 }
 
 /**
- * Keeps the theme toggle and system preference in sync.
+ * Synchronizes the theme control with the selected preference.
  *
- * @returns Cleanup that removes listeners and hides the toggle.
+ * @returns Removes listeners and hides the control.
  */
 export function mountTheme() {
   const button = document.querySelector("[data-theme-toggle]");
@@ -42,10 +42,9 @@ export function mountTheme() {
   const label = button.querySelector("[data-theme-label]");
   let preference = themePreference();
   const update = () => {
-    document.documentElement.dataset["theme"] = resolveTheme(
-      preference,
-      media.matches,
-    );
+    const theme = resolveTheme(preference, media.matches);
+    if (document.documentElement.dataset["theme"] !== theme)
+      document.documentElement.dataset["theme"] = theme;
     const text = button.dataset[preference] ?? preference;
     if (label) label.textContent = text;
     button.setAttribute("aria-label", `${name}: ${text}`);

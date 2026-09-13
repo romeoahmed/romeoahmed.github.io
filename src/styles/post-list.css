@@ -1,4 +1,22 @@
 @layer components {
+  /* An inline title needs a box to receive its own route snapshot. */
+  .post-title {
+    display: inline-block;
+  }
+
+  .topic-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    align-items: center;
+    font-size: 0.75rem;
+    color: var(--color-muted);
+  }
+
+  nav.topic-links {
+    margin-block: 1.5rem;
+  }
+
   .post-list-container {
     container: articles / inline-size;
   }
@@ -19,7 +37,7 @@
   .post-date {
     padding-block-start: 0.12rem;
     color: var(--color-muted);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     display: grid;
     align-content: start;
     gap: 0.7rem;
@@ -32,41 +50,55 @@
 
   .post-kind {
     color: var(--color-muted);
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.8rem;
+    gap: 0.25rem 0.8rem;
+    align-items: center;
+  }
+
+  .topic-links a,
+  .post-kind a {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 2rem;
   }
 
   .post-summary {
     min-inline-size: 0;
   }
 
-  .post-summary h3 {
+  .post-summary :is(h2, h3) {
     margin-block: 0.75rem;
     font-size: clamp(1.3rem, 2.5cqi, 1.8rem);
     letter-spacing: -0.03em;
   }
 
-  .post-summary h3 a {
+  .post-summary :is(h2, h3) a {
     display: flex;
     justify-content: space-between;
     align-items: start;
     gap: 1.5rem;
   }
 
-  .post-summary h3 svg {
+  .post-summary :is(h2, h3) svg {
     flex-shrink: 0;
     margin-block-start: 0.3rem;
     color: var(--color-muted);
     transition: color 180ms;
   }
 
-  .post-summary h3 a:is(:hover, :focus-visible) {
+  .topic-links a:hover,
+  .post-kind a:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
+  }
+
+  .post-summary :is(h2, h3) a:is(:hover, :focus-visible) {
     color: var(--color-accent);
   }
 
-  .post-summary h3 a:is(:hover, :focus-visible) svg {
+  .post-summary :is(h2, h3) a:is(:hover, :focus-visible) svg {
     color: var(--color-accent);
   }
 
@@ -81,7 +113,7 @@
     display: block;
     margin-block-start: 1rem;
     color: var(--color-muted);
-    font-size: 0.65rem;
+    font-size: 0.75rem;
   }
 
   @container articles (width < 32rem) {
@@ -99,7 +131,7 @@
       padding-block: 1.8rem;
     }
 
-    .post-summary h3 {
+    .post-summary :is(h2, h3) {
       font-size: 1.45rem;
     }
   }

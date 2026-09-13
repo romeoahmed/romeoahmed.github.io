@@ -1,7 +1,6 @@
 import { defineHastPlugin, type PluginFactoryContext } from "satteri";
 import { messages } from "../i18n/messages";
 
-/** Localizes generated footnote labels for Chinese files; other locales keep defaults. */
 export function footnotesPlugin(document: PluginFactoryContext) {
   if (!document.fileURL?.pathname.includes("/zh-hans/")) return;
   return defineHastPlugin({

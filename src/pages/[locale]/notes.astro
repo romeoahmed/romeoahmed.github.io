@@ -1,6 +1,8 @@
 ---
+import "../../styles/notes.css";
 import type { InferGetStaticPropsType } from "astro";
 import { render } from "astro:content";
+import License from "../../components/License.astro";
 import Page from "../../layouts/Page.astro";
 import {
   localePaths,
@@ -27,7 +29,6 @@ const notes = await Promise.all(
   locale={locale}
   title={`${t.notes} — ${site.author}`}
   description={t.notesIntro}
-  section="notes"
   languageUrl={`/${localeInfo[locale].other}/notes/`}
   alternates={locales.map((locale) => ({ locale, url: `/${locale}/notes/` }))}
 >
@@ -43,34 +44,21 @@ const notes = await Promise.all(
   <div class="notes-list">
     {notes.length === 0 && <p>{t.empty}</p>}
     {notes.map(({ note, Content }) => (
-      <article class="note" id={note.data.slug} data-reveal>
-        <div class="note-meta">
+      <article class="note" data-reveal data-pagefind-body>
+        <div class="note-meta" data-pagefind-ignore>
           <time datetime={note.data.publishedAt.toISOString()}>
             {dateLabel(note.data.publishedAt, locale)}
           </time>
           {note.data.sample && <span>{t.sample}</span>}
         </div>
         <div class="prose">
-          <h2>
+          <h2 id={note.data.slug}>
             <a href={`#${note.data.slug}`}>{note.data.title}</a>
           </h2>
           <Content />
-          <p>
-            <small>
-              {t.textLicense}:{" "}
-              <a
-                href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
-                rel="license"
-              >
-                {note.data.license}
-              </a>
-              {" · "}
-              {t.codeLicense}:{" "}
-              <a href="https://opensource.org/license/mit">MIT</a>
-            </small>
-          </p>
         </div>
       </article>
     ))}
   </div>
+  {notes[0] && <License locale={locale} license={notes[0].note.data.license} />}
 </Page>

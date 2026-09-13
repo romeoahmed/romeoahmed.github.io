@@ -1,7 +1,6 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { mountDiagrams } from "../../src/client/diagrams";
-import { mountReading } from "../../src/client/reading";
 import "../../src/styles/global.css";
 
 const source =
@@ -20,10 +19,9 @@ test("diagrams expose an accessible name, follow the palette, and remount withou
 }) => {
   document.documentElement.dataset["theme"] = "light";
   document.body.innerHTML =
-    '<main data-reading data-copy="Copy code"><div class="prose"><pre><code class="language-mermaid"></code></pre></div></main>';
+    '<div class="prose"><pre><code class="language-mermaid"></code></pre></div>';
   document.querySelector("code")!.textContent = source;
   const pre = document.querySelector("pre")!;
-  onTestFinished(mountReading());
   let dispose = mountDiagrams();
   onTestFinished(() => dispose());
   const diagram = page.getByRole("document", { name: "Publishing" });
@@ -31,9 +29,6 @@ test("diagrams expose an accessible name, follow the palette, and remount withou
     .element(diagram)
     .toHaveAccessibleDescription("A note becomes an essay.");
   await expect.element(pre).not.toBeVisible();
-  await expect
-    .element(page.getByRole("button", { name: "Copy code" }))
-    .not.toBeInTheDocument();
   const fill = () => {
     const shape = document.querySelector(".diagram svg rect");
     return shape ? getComputedStyle(shape).fill : undefined;
@@ -80,7 +75,7 @@ test("a disposed page cannot publish a diagram after fonts finish loading", asyn
   ready.mockRestore();
   fonts.resolve(document.fonts);
 
-  // A successful remount proves the disposed render has left the shared queue.
+  // A new mount must still render after the previous queued work is disposed.
   const next = document.createElement("pre");
   next.innerHTML = '<code class="language-mermaid"></code>';
   next.firstElementChild!.textContent = source;

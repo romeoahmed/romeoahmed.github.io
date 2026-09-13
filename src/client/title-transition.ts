@@ -1,14 +1,14 @@
 /**
- * Selects the outgoing article title for a shared view transition.
+ * Marks the outgoing title before Astro prepares the next page.
  *
- * @returns A callback that pairs the incoming title by content identity, if present.
+ * @returns A callback for the incoming document, pairing titles with matching content IDs.
  */
 export function prepareTitleTransition(to: URL) {
   document.querySelectorAll<HTMLElement>(".post-title").forEach((title) => {
     title.style.removeProperty("view-transition-name");
   });
   const link = document
-    .querySelectorAll<HTMLAnchorElement>(".post-row h3 a")
+    .querySelectorAll<HTMLAnchorElement>(".post-row :is(h2, h3) a")
     .values()
     .find((link) => link.pathname === to.pathname);
   const source =

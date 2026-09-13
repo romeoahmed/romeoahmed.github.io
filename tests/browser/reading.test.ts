@@ -1,82 +1,63 @@
-import { beforeEach, expect, test, vi } from "vitest";
-import { page } from "vitest/browser";
+import { beforeEach, expect, test } from "vitest";
+import { page, userEvent } from "vitest/browser";
 import { mountReading } from "../../src/client/reading";
+import "../../src/styles/global.css";
+import "../../src/styles/article.css";
 
-beforeEach(({ onTestFinished }) => {
-  onTestFinished(() => {
-    vi.restoreAllMocks();
+beforeEach(async () => {
+  const { innerWidth: width, innerHeight: height } = window;
+  await page.viewport(1280, 720);
+  return async () => {
     document.body.replaceChildren();
     window.scrollTo(0, 0);
-  });
+    await page.viewport(width, height);
+  };
 });
 
-const codeBlocks = `<main data-reading data-copy="Copy code" data-copied="Code copied"
-  data-copy-error="Try again" data-copy-failed="Copy failed">
-  <article class="prose" aria-label="First note"><pre data-language="ts"><code>const x = 1;</code></pre></article>
-  <article class="prose" aria-label="Second note"><pre><code>const y = 2;</code></pre></article>
-</main><div data-feedback role="status"></div>`;
-
-test("copy controls survive remounts and report success and failure per block", async ({
-  onTestFinished,
-}) => {
-  const write = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue();
-  document.body.innerHTML = codeBlocks;
-  let dispose = mountReading();
-  onTestFinished(() => dispose());
-  dispose();
-  expect(document.querySelectorAll("button")).toHaveLength(0);
-  dispose = mountReading();
-  expect(document.querySelectorAll("button")).toHaveLength(2);
-
-  await page
-    .getByRole("article", { name: "First note" })
-    .getByRole("button")
-    .click();
-  expect(write).toHaveBeenCalledExactlyOnceWith("const x = 1;");
-  await expect
-    .element(page.getByRole("status"))
-    .toHaveTextContent("Code copied");
-  write.mockRejectedValueOnce(new Error("Clipboard denied"));
-  const second = page.getByRole("article", { name: "Second note" });
-  await second.getByRole("button").click();
-  expect(write).toHaveBeenLastCalledWith("const y = 2;");
-  await expect
-    .element(page.getByRole("status"))
-    .toHaveTextContent("Copy failed");
-  await expect
-    .element(second.getByRole("button", { name: "Try again" }))
-    .toBeVisible();
-});
-
-test("a late clipboard result cannot update the next page", async ({
-  onTestFinished,
-}) => {
-  const pending = Promise.withResolvers<void>();
-  vi.spyOn(navigator.clipboard, "writeText").mockReturnValue(pending.promise);
-  document.body.innerHTML = codeBlocks;
-  const dispose = mountReading();
-  onTestFinished(dispose);
-  const feedback = document.querySelector("[data-feedback]")!;
-  await page
-    .getByRole("article", { name: "First note" })
-    .getByRole("button")
-    .click();
-  dispose();
-  document.body.innerHTML = '<div data-feedback role="status">Next page</div>';
-  pending.resolve();
-  await pending.promise;
-  expect(feedback.textContent).toBe("");
-  await expect.element(page.getByRole("status")).toHaveTextContent("Next page");
-});
+test.for([
+  { layout: "inline", width: "40rem", expanded: false },
+  { layout: "sidebar", width: "50rem", expanded: true },
+])(
+  "$layout contents follow container space and support keyboard toggling",
+  async ({ width, expanded }, { onTestFinished }) => {
+    document.body.innerHTML = `
+    <div class="page-column" style="width:${width}">
+      <main data-reading>
+        <details class="toc" open>
+          <summary>Contents</summary>
+          <nav><a href="#section">Section</a></nav>
+        </details>
+        <h2 id="section">Section</h2>
+      </main>
+    </div>
+  `;
+    onTestFinished(mountReading());
+    const section = page.getByRole("link", {
+      name: "Section",
+      includeHidden: true,
+    });
+    if (expanded) await expect.element(section).toBeVisible();
+    else await expect.element(section).not.toBeVisible();
+    await userEvent.keyboard("{Tab}{Enter}");
+    if (expanded) await expect.element(section).not.toBeVisible();
+    else await expect.element(section).toBeVisible();
+  },
+);
 
 test("the table of contents follows reading in both directions and ignores missing targets", async ({
   onTestFinished,
 }) => {
-  document.body.innerHTML = `<main data-reading>
-    <nav class="toc"><a href="#missing">Missing</a><a href="#one">One</a><a href="#two">Two</a></nav>
-    <h2 id="one">One</h2><div style="height: 120vh"></div>
-    <h2 id="two">Two</h2><div style="height: 120vh"></div>
-  </main>`;
+  document.body.innerHTML = `
+    <main data-reading>
+      <nav class="toc">
+        <a href="#missing">Missing</a>
+        <a href="#one">One</a>
+        <a href="#two">Two</a>
+      </nav>
+      <h2 id="one">One</h2><div style="height:120vh"></div>
+      <h2 id="two">Two</h2><div style="height:120vh"></div>
+    </main>
+  `;
   const dispose = mountReading();
   onTestFinished(dispose);
   const one = page.getByRole("link", { name: "One", exact: true });
@@ -91,4 +72,7 @@ test("the table of contents follows reading in both directions and ignores missi
   await expect
     .element(page.getByRole("link", { name: "Missing" }))
     .not.toHaveAttribute("aria-current");
+  dispose();
+  await expect.element(one).not.toHaveAttribute("aria-current");
+  await expect.element(two).not.toHaveAttribute("aria-current");
 });

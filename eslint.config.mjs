@@ -7,18 +7,24 @@ import prettier from "eslint-config-prettier/flat";
 export default defineConfig(
   globalIgnores(["dist/**", ".astro/**"]),
   js.configs.recommended,
-  ts.configs.recommendedTypeChecked,
+  ts.configs.recommended,
+  astro.configs.recommended,
   {
+    linterOptions: { reportUnusedInlineConfigs: "error" },
+  },
+  {
+    files: ["**/*.{ts,mjs}"],
+    ignores: ["**/*.astro/**"],
+    extends: [ts.configs.recommendedTypeChecked],
     languageOptions: {
       parserOptions: { projectService: true },
     },
-    linterOptions: { reportUnusedInlineConfigs: "error" },
   },
-  astro.configs.recommended,
   {
-    // astro check supplies type diagnostics; ESLint still applies syntax rules here.
-    files: ["**/*.astro", "**/*.astro/*"],
-    extends: [ts.configs.disableTypeChecked],
+    files: ["tests/browser/**/*.ts"],
+    rules: {
+      "no-empty-pattern": ["error", { allowObjectPatternsAsParameters: true }],
+    },
   },
   prettier,
 );

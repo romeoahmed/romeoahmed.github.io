@@ -4,6 +4,8 @@ import {
   published,
   postUrl,
   validatePublications,
+  relatedPosts,
+  readingMinutes,
   type Publication,
 } from "../../src/lib/publications";
 import { dateLabel, isLocale } from "../../src/i18n/locales";
@@ -22,6 +24,40 @@ const entry = (
   },
 });
 describe("publication contracts", () => {
+  it("prefers related topics within the edition and falls back to publication order", () => {
+    const topic = (
+      id: string,
+      tags: string[],
+      overrides: Partial<Publication["data"]> = {},
+    ) => {
+      const post = entry(id, overrides);
+      return { ...post, data: { ...post.data, tags } };
+    };
+    const current = topic("current", ["web"]);
+    const older = topic("related", ["web"], {
+      publishedAt: new Date("2026-08-01"),
+    });
+    const newer = topic("new", []);
+    const entries = [
+      current,
+      newer,
+      older,
+      topic("unrelated", [], { publishedAt: new Date("2026-07-01") }),
+      topic("draft", ["web"], { draft: true }),
+      topic("translation", ["web"], { locale: "zh-hans" }),
+    ];
+    expect(relatedPosts(current, entries).map(({ id }) => id)).toEqual([
+      "related",
+      "new",
+    ]);
+    expect(relatedPosts(current, [current])).toEqual([]);
+    expect(
+      relatedPosts(topic("current", ["web", "engineering"]), [
+        topic("repeated", ["web", "web", "web"]),
+        topic("both", ["web", "engineering"]),
+      ]).map(({ id }) => id),
+    ).toEqual(["both", "repeated"]);
+  });
   it("publishes newest first, breaks date ties, and preserves its input", () => {
     const entries = Object.freeze([
       entry("b"),
@@ -91,5 +127,13 @@ describe("publication contracts", () => {
     expect(isLocale("zh-hans")).toBe(true);
     expect(isLocale("fr")).toBe(false);
     expect(isLocale(undefined)).toBe(false);
+  });
+  it("estimates reading time without merging words separated by Han characters", () => {
+    expect(readingMinutes("")).toBe(1);
+    expect(readingMinutes("word ".repeat(220))).toBe(1);
+    expect(readingMinutes("word ".repeat(221))).toBe(2);
+    expect(readingMinutes("文".repeat(350))).toBe(1);
+    expect(readingMinutes("文".repeat(351))).toBe(2);
+    expect(readingMinutes("one中two ".repeat(200))).toBe(3);
   });
 });

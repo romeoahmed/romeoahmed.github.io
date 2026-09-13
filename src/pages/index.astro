@@ -1,5 +1,7 @@
 ---
+import "../styles/home.css";
 import Page from "../layouts/Page.astro";
+import { ArrowRight, ArrowUpRight } from "@lucide/astro";
 import SpatialMotif from "../components/SpatialMotif.astro";
 import { locales, localeInfo } from "../i18n/locales";
 import { getPosts } from "../lib/collections";
@@ -12,7 +14,6 @@ const posts = await getPosts();
   <section class="home-hero root-hero">
     <div class="hero-copy">
       <p class="eyebrow" data-reveal>
-        <span class="status-dot"></span>
         {messages.en.introduction}
       </p>
       <h1 data-reveal>
@@ -29,7 +30,7 @@ const posts = await getPosts();
     </div>
     <SpatialMotif />
   </section>
-  <section class="edition-section">
+  <section>
     <header class="section-heading">
       <h2>
         {messages.en.chooseEdition}{" "}
@@ -50,9 +51,7 @@ const posts = await getPosts();
             <h3>
               <a href={`/${locale}/`}>
                 {localeInfo[locale].label}
-                <span class="edition-arrow" aria-hidden="true">
-                  ↗
-                </span>
+                <ArrowUpRight class="edition-arrow" />
               </a>
             </h3>
             <p>{messages[locale].editionIntro}</p>
@@ -62,7 +61,7 @@ const posts = await getPosts();
                   {messages[locale].latestEssay}
                 </span>
                 {latest.data.title}
-                <span aria-hidden="true">→</span>
+                <ArrowRight />
               </a>
             )}
           </article>

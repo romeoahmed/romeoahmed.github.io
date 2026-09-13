@@ -13,16 +13,9 @@
     z-index: 1;
   }
 
-  .eyebrow {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    color: var(--color-muted);
-    font-size: 0.72rem;
-    line-height: 1.6;
-  }
-
-  .status-dot {
+  .hero-copy .eyebrow::before {
+    content: "";
+    flex-shrink: 0;
     inline-size: 0.35rem;
     block-size: 0.35rem;
     border-radius: 50%;
@@ -50,20 +43,6 @@
     margin-block-start: 1.7rem;
   }
 
-  .text-link {
-    display: inline-flex;
-    gap: 2rem;
-    align-items: center;
-    border-block-end: 1px solid var(--color-rule);
-    padding-block: 0.45rem;
-    font-size: 0.8rem;
-    transition: border-color 180ms;
-  }
-
-  .text-link:is(:hover, :focus-visible) {
-    border-color: var(--color-accent);
-  }
-
   .text-link-arrow {
     color: var(--color-accent);
   }
@@ -78,56 +57,19 @@
     position: relative;
     aspect-ratio: 0.95;
     min-block-size: 15rem;
+    overflow: clip;
+    contain: layout paint;
   }
 
   .static-scene {
     position: absolute;
-    inset: 5% -5%;
-    perspective: 900px;
-  }
-
-  .plane {
-    position: absolute;
-    display: block;
-    inline-size: 61%;
-    block-size: 69%;
-    inset: 11% auto auto 18%;
-    transform: rotateX(15deg) rotateY(-29deg) rotateZ(13deg);
-    border: 1px solid var(--color-rule);
-    background: linear-gradient(
-      135deg in oklch,
-      var(--color-surface),
-      var(--color-page)
-    );
-    box-shadow: 13px 20px 40px var(--color-shadow);
-  }
-
-  .plane-back {
-    translate: 21% -5%;
-    opacity: 0.55;
-  }
-
-  .plane-middle {
-    translate: 0 5%;
-    opacity: 0.9;
-  }
-
-  .plane-front {
-    translate: -21% 15%;
-    border-inline-start-color: var(--color-accent);
-    background: linear-gradient(
-      125deg in oklch,
-      color-mix(in oklch, var(--color-surface), var(--color-accent) 8%),
-      var(--color-page) 68%
-    );
-  }
-
-  .plane-front::after {
-    content: "";
-    position: absolute;
-    inset: 12% 16%;
-    border-block: 1px solid var(--color-rule);
-    opacity: 0.7;
+    inset-block: 0;
+    inset-inline-start: 50%;
+    inline-size: auto;
+    block-size: 100%;
+    aspect-ratio: 1;
+    transform: translateX(-50%);
+    fill: var(--color-accent);
   }
 
   .scene-stage {
@@ -142,17 +84,21 @@
     block-size: 100%;
   }
 
-  .scene-axis {
+  .spatial-scene::before,
+  .spatial-scene::after {
+    content: "+";
+    z-index: 1;
+    pointer-events: none;
     position: absolute;
     color: var(--color-rule);
     font: 0.9rem var(--font-mono);
   }
 
-  .axis-top {
+  .spatial-scene::before {
     inset: 2% 3% auto auto;
   }
 
-  .axis-bottom {
+  .spatial-scene::after {
     inset: auto auto 2% 3%;
   }
 
@@ -202,7 +148,8 @@
 
   .edition-arrow {
     color: var(--color-accent);
-    font-size: 1.5rem;
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
   }
 
   .edition-card > p {
@@ -282,10 +229,14 @@
     }
 
     .root-hero h1 {
-      font-size: 3.5rem;
+      font-size: 2.5rem;
     }
 
-    :lang(zh-Hans) .hero-copy h1 {
+    .root-hero .spatial-figure {
+      display: none;
+    }
+
+    .hero-copy h1:lang(zh-Hans) {
       font-size: clamp(2rem, 7vw, 2.55rem);
     }
 

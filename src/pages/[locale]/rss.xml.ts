@@ -21,7 +21,7 @@ export async function GET({ params }: APIContext) {
       title: post.data.title,
       description: post.data.description,
       pubDate: post.data.publishedAt,
-      // Absolute URLs keep note fragments intact in the RSS helper's URL normalization.
+      // Absolute URLs prevent RSS normalization from changing note fragments.
       link: new URL(
         post.collection === "notes"
           ? `/${locale}/notes/#${post.data.slug}`

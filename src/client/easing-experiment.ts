@@ -1,11 +1,11 @@
 import { gsap } from "gsap";
 
 /**
- * Connects playback and the range input to one easing timeline.
+ * Shares one timeline between playback and manual inspection.
  *
- * @returns Cleanup that reverts animation styles and disables the controls.
+ * @returns Reverts animation styles and disables the controls.
  */
-export function mountEasing(host: HTMLElement) {
+export function mountEasingExperiment(host: HTMLElement) {
   const input = host.querySelector("input");
   const output = host.querySelector("output");
   const play = host.querySelector("button");

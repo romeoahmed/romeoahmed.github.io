@@ -1,0 +1,24 @@
+---
+import type { CollectionEntry } from "astro:content";
+import type { Locale } from "../i18n/locales";
+import { messages } from "../i18n/messages";
+
+interface Props {
+  locale: Locale;
+  license: CollectionEntry<"posts">["data"]["license"];
+}
+const { locale, license } = Astro.props;
+const t = messages[locale];
+---
+
+<p class="license" data-pagefind-ignore>
+  <span>
+    {t.textLicense}{" "}
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="license">
+      {license}
+    </a>
+  </span>
+  <span>
+    {t.codeLicense} <a href="https://opensource.org/license/mit">MIT</a>
+  </span>
+</p>

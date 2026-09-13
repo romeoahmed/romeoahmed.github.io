@@ -1,13 +1,13 @@
 import mermaid from "mermaid";
 import { cssColorToHex } from "../lib/color";
 
-// Serialize configuration and rendering so pages cannot overwrite each other's theme.
+// Mermaid configuration is global; serialize it with rendering across page lifetimes.
 let pending = Promise.resolve();
 
 /**
- * Renders Mermaid fences and refreshes their SVG when the theme changes.
+ * Renders Mermaid fences using the current theme.
  *
- * @returns Cleanup that restores source blocks and prevents late SVG insertion.
+ * @returns Restores source blocks and prevents pending renders from inserting SVG.
  */
 export function mountDiagrams() {
   const entries = Array.from(
@@ -68,7 +68,7 @@ export function mountDiagrams() {
               renderer,
             );
             if (stale()) return;
-            // Replace only after rendering succeeds, avoiding a blank frame on theme changes.
+            // Keep the previous diagram visible until its replacement is ready.
             diagram.className = "diagram";
             diagram.innerHTML = svg;
             pre.after(diagram);

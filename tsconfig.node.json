@@ -1,9 +1,7 @@
 {
-  "extends": "astro/tsconfigs/strictest",
+  "extends": "./tsconfig.app.json",
   "compilerOptions": {
-    "lib": ["ESNext"],
-    "erasableSyntaxOnly": true,
-    "types": ["node", "web"],
+    "types": ["node"],
     "checkJs": true
   },
   "include": [

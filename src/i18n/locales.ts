@@ -14,7 +14,7 @@ export const dateLabel = (date: Date, locale: Locale) =>
   new Intl.DateTimeFormat(localeInfo[locale].tag, {
     year: "numeric",
     month: "short",
-    day: "2-digit",
+    day: "numeric",
     timeZone: "UTC",
   }).format(date);
 export const localePaths = () =>

@@ -1,15 +1,13 @@
 ---
 import stixStyles from "temml/dist/Temml-STIX2.css?raw";
+import { Font } from "astro:assets";
 
-// Use the bundled font while preserving Temml's MathML layout corrections.
-const styles = stixStyles.replace(
-  /@font-face\s*\{[^}]*\}/,
-  `@font-face {
-  font-family: STIX2;
-  src: url('/fonts/STIXTwoMath.woff2') format('woff2');
-  font-display: swap;
-}`,
-);
+// Keep Temml's STIX layout rules; Astro supplies the font face.
+const styles = stixStyles.replace(/@font-face\s*\{[^}]*\}/, "");
 ---
 
-<style is:inline set:html={`@layer vendor { ${styles} }`}></style>
+<Font cssVariable="--font-math" />
+<style
+  is:inline
+  set:html={`@layer vendor { ${styles} math { font-family: var(--font-math); } }`}
+></style>

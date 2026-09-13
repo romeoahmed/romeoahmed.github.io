@@ -1,0 +1,64 @@
+---
+import type { Locale } from "../i18n/locales";
+import { messages } from "../i18n/messages";
+import { Search, X } from "@lucide/astro";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = messages[locale];
+---
+
+<button
+  class="search-trigger"
+  commandfor="search-dialog"
+  command="show-modal"
+  aria-keyshortcuts="Meta+K Control+K"
+  hidden
+>
+  <Search />
+  <span>{t.search}</span>
+  <kbd aria-hidden="true">⌘K / Ctrl K</kbd>
+</button>
+<dialog
+  id="search-dialog"
+  class="search-dialog"
+  closedby="any"
+  aria-label={t.search}
+  data-locale={locale}
+>
+  <search>
+    <div class="search-heading">
+      <label for="search-input">{t.search}</label>
+      <button
+        commandfor="search-dialog"
+        command="close"
+        aria-label={t.searchClose}
+      >
+        <X />
+      </button>
+    </div>
+    <input
+      id="search-input"
+      type="search"
+      autofocus
+      autocomplete="off"
+      aria-describedby="search-status"
+    />
+    <p id="search-status" class="search-status" role="status">
+      {t.searchHint}
+    </p>
+    <ol class="search-results"></ol>
+    <button class="search-more" hidden>
+      {t.searchMore}
+    </button>
+  </search>
+  <template>
+    <li>
+      <a></a>
+      <p></p>
+      <ul></ul>
+    </li>
+  </template>
+</dialog>

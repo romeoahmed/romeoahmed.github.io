@@ -1,0 +1,95 @@
+---
+translationKey: shape-pause
+locale: zh-hans
+title: "停下来的那一刻"
+description: "两个方块走过同样的距离，差别藏在抵达之前。"
+slug: motion-and-stillness
+publishedAt: 2026-09-06
+license: CC-BY-NC-SA-4.0
+sample: true
+tags: [mathematics, interaction]
+---
+
+import EasingExperiment from "../../../components/EasingExperiment.astro";
+
+把一本书推到桌角，快到地方时，手会放慢一点。这一下平常得很，直到看见屏幕上的方块匀速滑过，又突然停住，才觉出少了什么。
+
+位置到了，动作却还没有收好。
+
+## 时间与路程
+
+用 $t \in [0,1]$ 表示已经过去的时间占比，用 $f(t)$ 表示已经走过的路程占比。匀速运动中，$f(t)=t$：时间过半，路程也过半。
+
+三次缓出曲线有另一种走法：
+
+$$
+\begin{equation}
+f(t) = 1 - (1-t)^3 \label{ease}
+\end{equation}
+$$
+
+把 $t=0.5$ 代入公式 $\eqref{ease}$，得到 $f(t)=0.875$。才用了一半时间，方块已经走完 87.5% 的路程。余下的一半时间，都留给了最后那一小段。
+
+<EasingExperiment locale="zh-hans" />
+
+## 最后一小段
+
+对位置函数求导，可以看见快慢的变化：
+
+$$
+f'(t)=3(1-t)^2, \qquad f'(0)=3, \qquad f'(1)=0.
+$$
+
+它出发得快，抵达时速度降到零。一个小图标回应点击，可以利落些；大标题要走过半个页面，起步可能也需要缓一缓。
+
+两条位置曲线下的面积，也能看出节奏的区别：
+
+$$
+\int_0^1 t\,dt = \frac{1}{2}, \qquad
+\int_0^1 f(t)\,dt = \frac{3}{4}.
+$$
+
+时间区间的长度是 1，因此这两个积分也是平均位置。缓出方块的平均位置更靠近轨道末端：它早早到了附近，慢慢走完剩下的路。
+
+<details>
+  <summary>把积分展开看看</summary>
+
+先展开三次方：$1-(1-t)^3=3t-3t^2+t^3$。逐项积分，代入上下限零和一，得到 $3/2-1+1/4=3/4$。
+
+</details>
+
+## 路径和节奏分开调
+
+把曲线的值作为权重，就能在两个位置之间插值：
+
+$$
+\mathbf{p}(t) = \bigl(1-f(t)\bigr)\mathbf{p}_0 + f(t)\mathbf{p}_1.
+$$
+
+每个坐标用同一个权重，横着走、竖着走，或沿斜线走，都能沿用这套节奏。
+
+```ts title="position.ts" {4}
+const easeOut = (t: number) => 1 - (1 - t) ** 3;
+
+const position = (start: number, end: number, t: number) =>
+  start + (end - start) * easeOut(t);
+```
+
+不过，走多远仍然要紧。同样的时长，挪几像素和横跨半屏，速度相差很大。曲线画得再顺，也得放回实际尺寸的页面里看。
+
+## 读者不一定等你播完
+
+方块还在移动，读者又点了一次。那就从眼下的位置接着走，朝向新的目标。若先跳回原点，动画本想连接起来的动作，反而被它截断了。
+
+```mermaid
+flowchart LR
+  accTitle: 抵达之前改变方向
+  accDescr: 输入设定目标，动画从当前位置移动，到达后停止。途中收到新输入，可以再次改变目标。
+  A[收到输入] --> B[设定目标]
+  B --> C[从当前位置移动]
+  C --> D[绘制变化]
+  D --> E[停下]
+  C -->|新的输入| B
+```
+
+读者选择减少动态效果，就省去这段移动。画面已经停稳，就不再重复绘制。停顿本身，不需要再添什么。

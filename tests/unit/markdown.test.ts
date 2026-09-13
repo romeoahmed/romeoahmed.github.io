@@ -26,11 +26,17 @@ it("scopes macros to one document and reports invalid TeX", () => {
     }),
   ).toThrow("Invalid mathematics in /content/en/broken.md");
 });
-it("localizes generated footnote controls", () => {
-  const { html } = markdownToHtml("文字[^a]\n\n[^a]: 注释", {
-    hastPlugins: [footnotesPlugin],
-    fileURL: new URL("file:///content/zh-hans/post.md"),
-  });
-  expect(html).toContain("注释</h2>");
-  expect(html).toContain("返回正文 1");
-});
+it.each([
+  ["en", "Footnotes", "Back to reference"],
+  ["zh-hans", "注释", "返回正文"],
+])(
+  "%s footnotes label navigation in the document language",
+  (locale, heading, back) => {
+    const { html } = markdownToHtml("A note[^a]\n\n[^a]: Detail", {
+      hastPlugins: [footnotesPlugin],
+      fileURL: new URL(`file:///content/${locale}/post.md`),
+    });
+    expect(html).toContain(`${heading}</h2>`);
+    expect(html).toContain(`${back} 1`);
+  },
+);

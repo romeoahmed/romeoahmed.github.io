@@ -26,15 +26,9 @@
     color: var(--color-accent);
   }
 
-  @media (width < 54rem) {
+  @container page (width < 42rem) {
     .about-layout {
-      grid-template-columns: minmax(0, 1fr) 10rem;
-    }
-  }
-
-  @media (width < 36rem) {
-    .about-layout {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
 
     .about-mark {

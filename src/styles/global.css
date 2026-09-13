@@ -3,11 +3,8 @@
 @import url("./tokens.css");
 @import url("./prose.css");
 @import url("./shell.css");
-@import url("./home.css");
 @import url("./post-list.css");
-@import url("./notes.css");
-@import url("./about.css");
-@import url("./article.css");
+@import url("./search.css");
 
 @layer reset {
   *,
@@ -46,26 +43,32 @@
 }
 
 @layer base {
+  .lucide {
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    stroke-width: 1.5;
+  }
+
   html {
     background: var(--color-page);
     scroll-padding-block-start: 2rem;
+    scrollbar-gutter: stable;
+  }
+
+  html:has(dialog:modal) {
+    overflow: hidden;
   }
 
   body {
     color: var(--color-text);
     font: 1rem/1.6 var(--font-prose);
-    -webkit-font-smoothing: antialiased;
   }
 
   a {
     color: inherit;
     text-decoration: none;
     text-underline-offset: 0.22em;
-  }
-
-  button,
-  a {
-    -webkit-tap-highlight-color: transparent;
+    text-decoration-thickness: from-font;
   }
 
   button {
@@ -94,7 +97,7 @@
     letter-spacing: -0.055em;
   }
 
-  :lang(zh-Hans) h1 {
+  h1:lang(zh-Hans) {
     letter-spacing: -0.025em;
     line-height: 1.3;
   }
@@ -108,7 +111,6 @@
   }
 
   main {
-    outline: none;
     min-inline-size: 0;
   }
 
@@ -125,23 +127,6 @@
   [hidden] {
     display: none;
   }
-
-  .sr-only {
-    position: absolute;
-    inline-size: 1px;
-    block-size: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-    border: 0;
-  }
-}
-
-/* Give the selected title its own snapshot, separate from the page entrance. */
-.post-title {
-  display: inline-block;
 }
 
 ::view-transition {
@@ -251,6 +236,8 @@
   @media print {
     :root,
     :root[data-theme="dark"] {
+      color-scheme: light;
+
       --color-page: oklch(100% 0 0deg);
       --color-surface: oklch(100% 0 0deg);
       --color-text: oklch(20% 0 0deg);
@@ -259,13 +246,21 @@
       --color-accent: oklch(30% 0 0deg);
     }
 
+    html {
+      overflow: visible;
+      scrollbar-gutter: auto;
+    }
+
     .author-rail,
     .page-top,
     .site-footer,
     .back-link,
     .toc,
     .related-section,
-    .copy-button,
+    .expressive-code .copy,
+    .search-dialog,
+    .experiment-play,
+    .about-mark,
     .spatial-figure {
       display: none;
     }
@@ -292,9 +287,9 @@
       font-size: 11pt;
     }
 
-    .prose .astro-code,
-    .prose .astro-code span {
-      color: var(--shiki-light);
+    .expressive-code .code,
+    .expressive-code .code span {
+      color: var(--color-text);
     }
 
     .prose pre {

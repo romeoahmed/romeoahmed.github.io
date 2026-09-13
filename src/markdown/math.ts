@@ -1,7 +1,7 @@
 import { defineMdastPlugin, type PluginFactoryContext } from "satteri";
 import temml from "temml";
 
-/** Creates a MathML transform whose TeX macros are scoped to one document. */
+/** Renders MathML at build time with document-scoped TeX macros. */
 export function mathPlugin(document: PluginFactoryContext) {
   const macros = {};
   const convert = (source: string, displayMode: boolean) => {

@@ -1,27 +1,31 @@
 ---
+import "../../styles/home.css";
 import type { InferGetStaticPropsType } from "astro";
+import { ArrowDown } from "@lucide/astro";
 import Page from "../../layouts/Page.astro";
 import SpatialMotif from "../../components/SpatialMotif.astro";
 import PostList from "../../components/PostList.astro";
 import { localePaths, locales } from "../../i18n/locales";
 import { messages } from "../../i18n/messages";
 import { getPosts } from "../../lib/collections";
+import { tags, tagLabel, topicUrl } from "../../i18n/tags";
 export const getStaticPaths = localePaths;
 type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 const { locale } = Astro.props;
 const t = messages[locale];
 const posts = await getPosts(locale);
+const topics = tags.filter((tag) =>
+  posts.some((post) => post.data.tags.includes(tag)),
+);
 ---
 
 <Page
   locale={locale}
-  section="writing"
   alternates={locales.map((locale) => ({ locale, url: `/${locale}/` }))}
 >
   <section class="home-hero">
     <div class="hero-copy">
       <p class="eyebrow" data-reveal>
-        <span class="status-dot"></span>
         {t.introduction}
       </p>
       <h1 data-reveal>
@@ -34,18 +38,23 @@ const posts = await getPosts(locale);
       </p>
       <a class="text-link hero-link" href="#writing" data-reveal>
         {t.recent}
-        <span class="text-link-arrow" aria-hidden="true">
-          ↓
-        </span>
+        <ArrowDown class="text-link-arrow" />
       </a>
     </div>
     <SpatialMotif />
   </section>
-  <section id="writing" class="writing-section">
+  <section id="writing">
     <header class="section-heading">
       <h2>{t.recent}</h2>
       <span class="section-count">{t.postCount(posts.length)}</span>
     </header>
+    {topics.length > 0 && (
+      <nav class="topic-links" aria-label={t.topics}>
+        {topics.map((tag) => (
+          <a href={topicUrl(tag, locale)}>{tagLabel(tag, locale)}</a>
+        ))}
+      </nav>
+    )}
     <PostList posts={posts} locale={locale} />
   </section>
 </Page>

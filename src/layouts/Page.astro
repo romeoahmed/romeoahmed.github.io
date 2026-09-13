@@ -1,40 +1,64 @@
 ---
+import type { CollectionEntry } from "astro:content";
+import { Font } from "astro:assets";
+import Search from "../components/Search.astro";
 import { ClientRouter } from "astro:transitions";
 import { localeInfo, home, type Locale } from "../i18n/locales";
 import { messages } from "../i18n/messages";
 import { site } from "../lib/site";
-import Icon from "../components/Icon.astro";
+import { ArrowUp, ArrowUpRight, Rss, Sun } from "@lucide/astro";
 import Mark from "../components/Mark.astro";
-// Link this stylesheet first so its layer order precedes conditional math styles.
+// Establish cascade order before conditional math styles.
 import styles from "../styles/global.css?url";
 import MathStyles from "../components/MathStyles.astro";
 interface Props {
   locale?: Locale;
   title?: string;
   description?: string;
-  section?: "writing" | "notes" | "about";
   alternates?: readonly { readonly locale: Locale; readonly url: string }[];
   languageUrl?: string | undefined;
   missingTranslation?: boolean;
   noindex?: boolean;
+  article?: CollectionEntry<"posts">["data"];
 }
 const {
   locale = "en",
   title = `${site.author} — ${messages[locale].volume}`,
   description = messages[locale].description,
-  section,
   alternates = [],
   languageUrl,
   missingTranslation = false,
   noindex = false,
+  article,
 } = Astro.props;
-// Render once so math can be detected before the head and reused in the body.
+// Inspect the rendered slot for MathML before emitting the head; reuse it in the body.
 const content = await Astro.slots.render("default");
 const hasMath = content.includes("<math");
 const t = messages[locale];
 const other = localeInfo[locale].other;
 const canonical = new URL(Astro.url.pathname, site.url);
+const socialImage = new URL(
+  `/og/${locale}${article ? `/posts/${article.slug}` : ""}.png`,
+  site.url,
+);
+const structuredData = article && {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  headline: article.title,
+  description,
+  url: canonical.href,
+  mainEntityOfPage: canonical.href,
+  image: socialImage.href,
+  inLanguage: localeInfo[locale].tag,
+  datePublished: article.publishedAt.toISOString(),
+  dateModified: (article.updatedAt ?? article.publishedAt).toISOString(),
+  author: { "@type": "Person", name: site.author, url: site.github },
+};
 const root = Astro.url.pathname === "/";
+const navigation = (["writing", "notes", "about"] as const).map((item) => ({
+  label: t[item],
+  href: item === "writing" ? home(locale) : `${home(locale)}${item}/`,
+}));
 const leave = {
   name: "page-leave",
   duration: "160ms",
@@ -63,6 +87,8 @@ const pageTransition = {
   <head>
     <meta charset="utf-8" />
     <link rel="stylesheet" href={styles} />
+    <Font cssVariable="--font-prose" preload={[{ style: "normal" }]} />
+    <Font cssVariable="--font-mono" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <meta name="color-scheme" content="dark light" />
@@ -88,21 +114,42 @@ const pageTransition = {
     />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     {hasMath && <MathStyles />}
-    <meta
-      property="og:type"
-      content={Astro.url.pathname.includes("/posts/") ? "article" : "website"}
-    />
+    <meta property="og:type" content={article ? "article" : "website"} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:site_name" content={site.author} />
+    <meta property="og:image" content={socialImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={article?.title ?? site.author} />
+    <meta name="twitter:card" content="summary_large_image" />
+    {article && (
+      <meta
+        property="article:published_time"
+        content={article.publishedAt.toISOString()}
+      />
+    )}
+    {article?.updatedAt && (
+      <meta
+        property="article:modified_time"
+        content={article.updatedAt.toISOString()}
+      />
+    )}
+    {structuredData && (
+      <script
+        is:inline
+        type="application/ld+json"
+        set:html={JSON.stringify(structuredData).replace(/</g, "\\u003c")}
+      ></script>
+    )}
     <script is:inline>
       (() => {
         let choice = "system";
         try {
           choice = localStorage.getItem("theme") || "system";
         } catch {
-          // Use the system theme if the saved preference cannot be read.
+          // Storage is optional; the system theme remains available.
         }
         document.documentElement.dataset.theme =
           choice === "light" || choice === "dark"
@@ -119,7 +166,7 @@ const pageTransition = {
       {t.skip}
     </a>
     <div class="site-shell">
-      <aside
+      <header
         class="author-rail"
         aria-label={site.author}
         transition:name="author"
@@ -130,9 +177,7 @@ const pageTransition = {
           href={root ? "/" : home(locale)}
           aria-label={`${site.author} — ${t.home}`}
         >
-          <span class="identity-mark">
-            <Mark />
-          </span>
+          <Mark />
           <span class="identity-name">{site.author}</span>
         </a>
         <p class="motto" lang="en">
@@ -141,21 +186,17 @@ const pageTransition = {
           stupid.
         </p>
         <nav aria-label={t.navigation} class="main-nav">
-          {(["writing", "notes", "about"] as const).map((item, index) => (
+          {navigation.map(({ label, href }, index) => (
             <a
               class="nav-link"
-              href={
-                item === "writing" ? home(locale) : `${home(locale)}${item}/`
-              }
-              aria-current={section === item && !root ? "page" : undefined}
+              href={href}
+              aria-current={Astro.url.pathname === href ? "page" : undefined}
             >
               <span class="nav-index" aria-hidden="true">
                 0{index + 1}
               </span>
-              {t[item]}
-              <span class="nav-mark" aria-hidden="true">
-                ↗
-              </span>
+              {label}
+              <ArrowUpRight class="nav-mark" />
             </a>
           ))}
         </nav>
@@ -167,6 +208,7 @@ const pageTransition = {
             <span aria-hidden="true">/</span>
             <a
               lang={localeInfo[other].tag}
+              hreflang={localeInfo[other].tag}
               class="language-link"
               href={languageUrl ?? home(other)}
               aria-label={
@@ -176,9 +218,6 @@ const pageTransition = {
               {localeInfo[other].label}
             </a>
           </div>
-          {missingTranslation && (
-            <p class="translation-notice">{t.unavailable}</p>
-          )}
           <div class="rail-tools">
             <button
               class="theme-toggle"
@@ -191,31 +230,26 @@ const pageTransition = {
               data-system={t.system}
               hidden
             >
-              <Icon name="sun" />
+              <Sun />
               <span data-theme-label>{t.system}</span>
             </button>
-            <a href={site.github} aria-label="GitHub">
-              <Icon name="github" />
-            </a>
+            <a href={site.github}>GitHub</a>
             <a href={`/${locale}/rss.xml`} aria-label={t.feed}>
-              <Icon name="rss" />
+              <Rss />
             </a>
           </div>
         </div>
-      </aside>
+      </header>
       <div class="page-column">
-        <header class="page-top">
+        <div class="page-top">
           <a href={root ? "/" : home(locale)}>{t.volume}</a>
-        </header>
+          <Search locale={locale} />
+        </div>
         <main
           id="main"
           tabindex="-1"
           data-reading
           data-references={content.includes("tml-ref")}
-          data-copy={t.copy}
-          data-copied={t.copied}
-          data-copy-error={t.copyError}
-          data-copy-failed={t.copyFailed}
         >
           <Fragment set:html={content} />
         </main>
@@ -225,12 +259,11 @@ const pageTransition = {
           </span>
           <span>{t.footer}</span>
           <a href="#main" aria-label={t.top}>
-            ↑
+            <ArrowUp />
           </a>
         </footer>
       </div>
     </div>
-    <div class="sr-only" role="status" data-feedback></div>
-    <script src="../client/navigation.ts"></script>
+    <script src="../client/lifecycle.ts"></script>
   </body>
 </html>

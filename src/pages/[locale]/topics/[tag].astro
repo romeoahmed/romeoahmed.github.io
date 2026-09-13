@@ -1,0 +1,55 @@
+---
+import type { InferGetStaticPropsType } from "astro";
+import { ArrowLeft } from "@lucide/astro";
+import { site } from "../../../lib/site";
+import Page from "../../../layouts/Page.astro";
+import PostList from "../../../components/PostList.astro";
+import { getPosts } from "../../../lib/collections";
+import { localeInfo } from "../../../i18n/locales";
+import { tags, tagLabel, topicUrl } from "../../../i18n/tags";
+import { messages } from "../../../i18n/messages";
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return tags.flatMap((tag) => {
+    const editions = Map.groupBy(
+      posts.filter((post) => post.data.tags.includes(tag)),
+      (post) => post.data.locale,
+    );
+    const alternates = Array.from(editions.keys(), (locale) => ({
+      locale,
+      url: topicUrl(tag, locale),
+    }));
+    return Array.from(editions, ([locale, posts]) => ({
+      params: { locale, tag },
+      props: { locale, tag, posts, alternates },
+    }));
+  });
+}
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+const { locale, tag, posts, alternates } = Astro.props;
+const t = messages[locale];
+const title = tagLabel(tag, locale);
+---
+
+<Page
+  locale={locale}
+  title={`${title} — ${site.author}`}
+  description={t.topicIntro(title)}
+  alternates={alternates}
+  languageUrl={
+    alternates.find((entry) => entry.locale === localeInfo[locale].other)?.url
+  }
+>
+  <header class="page-heading">
+    <a class="text-link" href={`/${locale}/#writing`}>
+      <ArrowLeft />
+      {t.allWriting}
+    </a>
+    <h1 data-reveal>{title}</h1>
+    <p class="lead" data-reveal>
+      {t.topicIntro(title)}
+    </p>
+  </header>
+  <PostList posts={posts} locale={locale} heading="h2" />
+</Page>

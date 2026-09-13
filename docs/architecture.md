@@ -1,110 +1,105 @@
 # Architecture
 
-Astro builds static HTML for GitHub Pages. Reading, links, language selection, code highlighting, and mathematical layout work without JavaScript. Browser modules add interaction and decoration. [Design](design.md) defines their presentation; [writing](writing.md) covers authoring.
+Astro generates static HTML for GitHub Pages. Reading, navigation, code highlighting, and MathML work before JavaScript; browser modules add search, diagrams, and motion. See [design](design.md) for presentation and [writing](writing.md) for authoring.
 
 ## Source map
 
-| Location                                | Responsibility                                                        |
-| --------------------------------------- | --------------------------------------------------------------------- |
-| `src/pages/`                            | Static routes, locale enumeration, RSS                                |
-| `src/layouts/`, `src/components/`       | Document structure and reusable UI                                    |
-| `src/content/`, `src/content.config.ts` | Posts, notes, and their schema                                        |
-| `src/markdown/`                         | Build-time math and footnote transformations                          |
-| `src/i18n/`                             | Locale registry, interface copy, tag labels                           |
-| `src/lib/`                              | Site identity, collection access, publication rules, color conversion |
-| `src/client/`                           | Browser features and their cleanup                                    |
-| `src/styles/`                           | Palette, layout, typography, transition styles                        |
-| `public/`                               | Favicon, robots file, licensed math font                              |
-| `tests/`                                | Node logic tests and Chromium checks                                  |
+| Location                                | Responsibility                                                      |
+| --------------------------------------- | ------------------------------------------------------------------- |
+| `src/pages/`                            | Routes, RSS, and sharing-image endpoints                            |
+| `src/layouts/`, `src/components/`       | Document shell, article layout, reusable UI                         |
+| `src/content/`, `src/content.config.ts` | Localized writing and schema                                        |
+| `src/markdown/`                         | Code, math, and footnote transformations                            |
+| `src/i18n/`                             | Locales, interface copy, tag labels                                 |
+| `src/lib/`                              | Content access, publication rules, colors, particles, sharing cards |
+| `src/client/`                           | Browser features and their lifetimes                                |
+| `src/styles/`                           | Shared and page-specific styles                                     |
 
-`Page.astro` owns the document shell; `Article.astro` composes it for posts. In `src/lib/`, `collections.ts` is the Astro content access boundary, while `publications.ts` and `color.ts` contain pure operations. Browser mounts belong in `src/client/`.
+`Page.astro` owns the document; `Article.astro` composes it for posts. `collections.ts` accesses Astro content, while `publications.ts` handles publication rules. `lifecycle.ts` connects browser mounts to navigation. Keep this as one package; the manifest and lockfile own dependency versions.
 
-Styles follow their consumers: `shell.css` holds shared page structure, headings, and error states; `post-list.css` serves writing indexes and related posts; home, article, notes, and about each have a stylesheet. `global.css` establishes imports, cascade order, base rules, route transitions, and print behavior.
-
-The manifest and lockfile own dependency versions. Keep a single package; introduce structure when a feature needs it.
+Styles follow their consumers. Page-specific stylesheets load through their templates; `global.css` establishes cascade order and shared styles. The cascade is `reset, vendor, base, components, utilities`. UI icons use direct [Lucide](https://lucide.dev/guide/astro/getting-started) imports; the mark and particle motif remain custom.
 
 ## Build and content
 
-[Content Collections](https://docs.astro.build/en/guides/content-collections/) load Markdown and MDX through `glob()` and validate frontmatter with Zod. Publication helpers reject duplicate slugs and translation identities within each collection and locale, including drafts. Public output excludes drafts and sorts by publication date, then ID.
+[Content Collections](https://docs.astro.build/en/guides/content-collections/) load Markdown and MDX with `glob()` and validate frontmatter with Zod. Slugs and translation keys must be unique per collection and locale, including drafts. Published entries exclude drafts and sort by date, then ID.
 
-Sätteri processes both formats through Astro’s Markdown integration. Its math visitor calls Temml at build time; its footnote visitor localizes Chinese labels by source path. Astro’s Shiki integration highlights code. MDX embeds Astro components without a hydrated UI framework. Repository content is trusted build input: MDX can execute code.
+Sätteri processes both formats. Temml converts math to MathML with document-scoped macros; invalid TeX fails the build. Footnote labels follow the content locale. Expressive Code supplies highlighting, frames, copy controls, markers, and its official line-number plugin through `satteri-expressive-code`. Astro’s separate highlighter is disabled. Keep plugin versions compatible with Sätteri’s Expressive Code version.
 
-Routes pass inferred `getStaticPaths()` props into layouts. Article bodies use slots. `Page.astro` renders its slot once to detect MathML before emitting the head, then reuses that HTML. The global stylesheet is explicitly linked before conditional math styles to establish cascade order.
+MDX embeds Astro components without a hydrated framework. Treat it as executable, trusted repository content. Routes pass inferred `getStaticPaths()` props into layouts. `Page.astro` renders its slot once to detect MathML before writing the head, then reuses that HTML. Its explicit global stylesheet link establishes layer order before conditional math styles.
 
 ## Languages and URLs
 
-| Page               | URL                                               |
-| ------------------ | ------------------------------------------------- |
-| Language selection | `/`                                               |
-| Writing index      | `/{locale}/`                                      |
-| Article            | `/{locale}/posts/{slug}/`                         |
-| Notes              | `/{locale}/notes/`, with a fragment for each note |
-| About              | `/{locale}/about/`                                |
-| RSS                | `/{locale}/rss.xml`                               |
+| Page               | URL                       |
+| ------------------ | ------------------------- |
+| Language selection | `/`                       |
+| Writing index      | `/{locale}/`              |
+| Article            | `/{locale}/posts/{slug}/` |
+| Notes              | `/{locale}/notes/#slug`   |
+| About              | `/{locale}/about/`        |
+| Topic              | `/{locale}/topics/{tag}/` |
+| RSS                | `/{locale}/rss.xml`       |
 
-Locales are `en` and `zh-hans`; the Chinese HTML language tag is `zh-Hans`. Astro [i18n routing](https://docs.astro.build/en/guides/internationalization/) prefixes both editions. The root lets readers choose explicitly. A bilingual `404.html` serves missing pages and is marked `noindex`.
+[Astro i18n](https://docs.astro.build/en/guides/internationalization/) prefixes both `en` and `zh-hans`; Chinese HTML uses `zh-Hans`. The root offers an explicit choice. A bilingual, unindexed `404.html` handles missing pages.
 
-Shared templates select typed dictionaries from `src/i18n/`. Translations share a `translationKey`; their slugs may differ. Article language links resolve published counterparts. If one is missing, the page explains this and links to the other writing index.
+Shared templates use typed dictionaries. Article language links resolve published entries with the same `translationKey`; a missing translation links to the other writing index with an explanation. Topic pages exist only for populated tags. Related posts prefer shared tags within the edition, then publication order.
 
-Canonical URLs identify each page. Article alternates include only published counterparts; the root and localized homes also declare `/` as `x-default`. Each RSS feed includes posts and note links with fragments. Dates display in UTC to preserve the authored calendar day.
+Pages declare canonical URLs; article alternates list published counterparts only. The root and localized homes include an `x-default` link to `/`. RSS combines posts and note fragments. Display dates use UTC to preserve authored calendar days.
 
 ## Browser lifetimes and motion
 
-| Owner                   | Responsibility                                                                                  |
-| ----------------------- | ----------------------------------------------------------------------------------------------- |
-| Astro ClientRouter      | Navigation, history, document swaps, scroll restoration                                         |
-| Native View Transitions | Selected-title travel and page snapshots                                                        |
-| GSAP                    | Initial reveals, arrow feedback, anchor scrolling, scene pose and appearance, easing experiment |
-| CSS                     | Layout, focus, color feedback, snapshot styling, reduced-motion rules                           |
+| Owner                   | Responsibility                                                                 |
+| ----------------------- | ------------------------------------------------------------------------------ |
+| Astro ClientRouter      | Navigation, history, swaps, scroll restoration                                 |
+| Native View Transitions | Route snapshots and paired-title travel                                        |
+| GSAP                    | Reveals, control feedback, anchor scrolling, scene response, easing experiment |
+| CSS                     | Layout, focus, color feedback, snapshot styles, reduced motion                 |
 
-One owner animates each property. Do not add CSS transform transitions to GSAP targets or replace Astro’s router with animation code.
+Each animated property has one owner. [CSSPlugin](https://gsap.com/docs/v3/GSAP/CorePlugins/CSS/) handles transforms and opacity; `quickTo()` retargets pointer feedback. Completed entrances clear temporary properties. `matchMedia().revert()` restores styles when effects end or motion preferences change. The search entrance reuses one tween, reverting on close without destroying it.
 
-`navigation.ts` uses Astro’s [navigation lifecycle](https://docs.astro.build/en/guides/view-transitions/#lifecycle-events): select the outgoing title before preparation; pair it, dispose old features, and theme the incoming document before swap; mount features on page load. Async mounts check page lifetime and dispose results that arrive late. Initial text reveals run only on the first page.
+`lifecycle.ts` follows Astro’s [navigation events](https://docs.astro.build/en/guides/view-transitions/#lifecycle-events): select the outgoing title before preparation; pair titles, dispose features, and theme the incoming document before swap; mount on page load. Dispose async mounts that finish after their page has left. Text reveals run on first load only.
 
-Same-page links retain Astro’s fragment history. `anchors.ts` resets Astro’s immediate scroll before paint, then starts GSAP ScrollTo. User input or navigation cancels pending and active motion. Skip links and reduced motion use native scrolling. CSS smooth scrolling stays off.
+Anchor scrolling preserves Astro’s fragment history, resetting its immediate scroll before paint so GSAP can start from the click position. Input or navigation cancels pending and active motion. Skip links and reduced motion scroll natively; CSS smooth scrolling stays off.
 
-The theme follows the system unless the reader chooses otherwise. An inline head script applies it before paint; incoming documents receive the same preference before swapping. Reading enhancements mount across all prose blocks, with localized clipboard feedback and heading tracking. The MDX easing experiment is a custom element whose connection and disconnection own one paused GSAP timeline.
+The inline head script applies the theme before paint; subsequent swaps use the same preference. The contents disclosure derives its initial open state from CSS positioning. The MDX easing experiment owns its timeline through custom-element connection and disconnection.
 
-## Optional renderers
+## Search and renderers
 
-### Mathematics
+### Search
 
-Temml emits native MathML with document-scoped macros and build errors for invalid TeX. Its installed STIX stylesheet is included only on pages with math, in the `vendor` layer. The complete STIX Two Math font is self-hosted; [provenance and licensing](../public/fonts/README.md) stay beside the asset.
+[astro-pagefind](https://github.com/shishkin/astro-pagefind) indexes built HTML and serves that index during development. Rebuild after editing content. Only article and note bodies are indexed; navigation, metadata, licenses, related reading, diagram source, and code controls are excluded. Notes retain heading fragments for search links.
 
-Only equation references load Temml’s official post-processing script in the browser. The converter stays in the build. A failed reference enhancement leaves mathematical layout intact.
+[Pagefind](https://pagefind.app/docs/api/) owns language selection, workers, debouncing, ranking, and excerpts. Each page creates and destroys its own instance, including late initialization results. Input focus warms the index; queries retry failed initialization. Results load six at a time. Native dialog commands own focus and dismissal; GSAP owns entry. Results remain ordinary navigation links.
 
-### Diagrams
+Chinese compounds can occasionally miss matches because indexing and query tokenization differ; see the [upstream issue](https://github.com/Pagefind/pagefind/issues/1237).
 
-Mermaid loads when the page contains a `mermaid` fence. It renders after fonts are ready using `render()` and the returned `bindFunctions`. Automatic startup is disabled because the page owns mounting; strict security remains the library default. See [Mermaid usage](https://mermaid.js.org/config/usage.html).
+### Math and diagrams
 
-Rendering and theme configuration share a serial queue. Stale requests cannot insert SVG. The source or previous diagram remains visible until its replacement succeeds; failure restores source. Disposal removes observers and measurement elements. The color adapter converts site OKLCH tokens to the sRGB hex Mermaid expects.
+Pages containing MathML load Temml’s STIX layout rules and STIX Two Math through Astro’s local font provider. This preserves the full mathematical glyph range. Only equation references need Temml’s browser post-processing script; formulas remain readable if it fails.
 
-### Spatial motif
+Mermaid loads only for diagram fences, waits for fonts, and uses [`render()` and `bindFunctions`](https://mermaid.js.org/config/usage.html). Automatic startup is disabled. A shared queue serializes global theme configuration and rendering. Stale results cannot insert SVG; the previous diagram remains visible until its replacement succeeds, and failures restore source. Cleanup removes observers and measurement elements. The color adapter converts OKLCH tokens to sRGB hex.
 
-Babylon Lite loads when a home motif approaches the viewport and WebGPU is available. The CSS composition reserves space and remains visible until the first GPU frame. Three matte boxes use an orthographic camera and a small WGSL gradient material; GSAP updates their pose.
+### Particle field
 
-Enable asynchronous shader compilation before registering the scene, and device-loss recovery before creating geometry. Lite owns shader bindings, pipelines, and resource recovery. The app owns visibility, sizing, and disposal. See [Babylon Lite](https://doc.babylonjs.com/lite/).
+[Babylon Lite](https://doc.babylonjs.com/lite/) loads near the viewport when WebGPU is available. `particle-field.ts` supplies deterministic positions to the SVG fallback and GPU scene. One thin-instanced plane draws camera-facing particles through an orthographic camera. GSAP smooths pointer response; WGSL applies local displacement and circular coverage. Instance buffers remain fixed after creation.
 
-Invalidations coalesce into animation frames. Settled, hidden, and offscreen scenes schedule no rendering. DPR is capped at 1.75. Colors enter the shader as linear sRGB and are encoded once by the engine. Device loss reveals the static motif while recovery runs; failure releases the scene. There is no WebGL backend or worker protocol.
+Enable asynchronous compilation before scene registration and device recovery before geometry creation. Lite owns pipelines, bindings, and recovery; the mount owns sizing, visibility, and disposal. The SVG stays visible until the first frame and returns during device loss. Failed recovery releases the scene.
 
-## Platform and tooling
+Invalidations coalesce into animation frames; settled, hidden, and offscreen scenes stop rendering. Shader colors are linear sRGB and encoded once by the engine. An opaque canvas clears to the page color so particle blending remains in linear light. Pointer Events stay local and passive; reduced motion keeps the resting field.
 
-CSS uses OKLCH without legacy fallbacks, logical properties, Subgrid, and container queries. The cascade is `reset, vendor, base, components, utilities`. MathML retains its native layout. Newly Baseline APIs are allowed; WebGPU is the explicit support exception.
+## Images and fonts
 
-The root TypeScript config references app and tooling projects. Both extend Astro’s strictest preset and use erasable syntax. `@types/web` supplies browser declarations without bundled DOM types; tooling also includes Node types. Astro owns output, so checks use `astro check` and `tsc -p`, not a declaration build.
+[Astro images](https://docs.astro.build/en/guides/images/) use Sharp and constrained layouts to generate responsive WebP. `Figure.astro` adds captions to `Image`. Takumi generates PNG sharing cards at static endpoints, reusing one renderer with local Inter and Noto Sans SC fonts. Article metadata also supplies `BlogPosting` JSON-LD. No image renderer ships to the browser.
 
-ESLint, Stylelint, and Prettier use recommended presets and defaults. Astro checking owns component type diagnostics. The ESLint config remains `.mjs` so it loads without an extra loader; tooling checks it with `checkJs`. Dependency overrides belong beside their removal condition in `pnpm-workspace.yaml`.
+[Astro Fonts](https://docs.astro.build/en/guides/fonts/) self-hosts installed font packages and calculates fallback metrics. Inter supplies Western text, Geist Mono code, and system fonts Chinese text. Only normal Latin Inter is preloaded. Noto Sans SC is limited to sharing cards; STIX Two Math loads only with formulas.
 
-## Verification and delivery
+## Tooling and delivery
 
-`pnpm verify` runs formatting, linting, both type checks, the build, and Vitest. Lint and Astro-check warnings fail verification.
+The root TypeScript config exposes app and tooling projects to the editor and ESLint. The app extends [Astro’s strictest preset](https://docs.astro.build/en/guides/typescript/#configuration); tooling and tests inherit it and add Node types. Checks use `astro check` and `tsc -p`; Astro owns output.
 
-| Test boundary            | Coverage                                                                      |
-| ------------------------ | ----------------------------------------------------------------------------- |
-| Node                     | Publication rules, translations, dates, Markdown transforms, color conversion |
-| Built output in Chromium | Metadata, licenses, feeds, MathML, code labels, unenhanced content            |
-| Browser modules          | Clipboard, theme, diagrams, heading tracking, title pairing, motion, cleanup  |
+`@typescript/lib-dom` aliases `@types/web`. With [`libReplacement`](https://www.typescriptlang.org/tsconfig/libReplacement.html) enabled, both the configured DOM library and Astro’s explicit DOM references resolve to that package. Do not also load `web` through `types` or add a second DOM declaration package.
 
-Vitest owns both projects; its [Playwright provider](https://vitest.dev/config/browser/playwright) selects the `chromium` channel to match installation with `--no-shell`. Output tests parse a fresh `dist/` as inert documents: they do not execute the full site. Router integration, GPU output, and motion quality need browser review against the [design criteria](design.md#review).
+ESLint uses recommended syntax and type-aware rules; Astro checking handles component types. Its `.mjs` config loads without a loader or experimental flag. Stylelint uses the standard preset; Prettier owns formatting. Dependency overrides include their removal condition in `pnpm-workspace.yaml`.
 
-The [workflow](../.github/workflows/deploy.yml) checks pull requests and deploys verified `main` builds. Set the repository’s Pages source to **GitHub Actions**. The official Astro action builds and uploads the artifact; only the deployment job receives Pages and identity-token write permissions. This username repository needs no `base` prefix. See [Astro’s Pages guide](https://docs.astro.build/en/guides/deploy/github/).
+`pnpm verify` runs formatting, types, lint, build, and Vitest. Lint and Astro-check warnings fail it. Vitest owns Node and Chromium through its [Playwright provider](https://vitest.dev/config/browser/playwright). Built-output tests parse inert documents; they do not exercise the full router. GPU submission checks depend on adapter availability, while initialization-failure tests always cover the SVG fallback. Production browser review remains necessary for motion and rendering quality.
+
+The [workflow](../.github/workflows/deploy.yml) verifies pull requests and deploys `main`. Set Pages source to **GitHub Actions**. The official Astro action builds and uploads the artifact; only deployment receives Pages and identity-token write permissions. This username repository needs no `base` prefix. See [Astro’s Pages guide](https://docs.astro.build/en/guides/deploy/github/).
