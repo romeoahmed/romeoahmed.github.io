@@ -1,0 +1,292 @@
+@layer base {
+  .prose {
+    max-inline-size: 68ch;
+    min-inline-size: 0;
+    font-size: 1.0625rem;
+    line-height: 1.8;
+    overflow-wrap: break-word;
+  }
+
+  :lang(zh-Hans) .prose {
+    max-inline-size: 38em;
+    line-height: 1.95;
+  }
+
+  .prose > :first-child {
+    margin-block-start: 0;
+  }
+
+  .prose p,
+  .prose ul,
+  .prose ol,
+  .prose blockquote,
+  .prose figure {
+    margin-block: 1.5rem;
+  }
+
+  .prose h2 {
+    font-size: 1.6rem;
+    margin-block: 3.3rem 1.3rem;
+    letter-spacing: -0.03em;
+  }
+
+  .prose h3 {
+    font-size: 1.2rem;
+    margin-block: 2.4rem 1rem;
+  }
+
+  .prose a {
+    text-decoration: underline;
+    text-decoration-color: var(--color-rule);
+    transition: color 180ms;
+  }
+
+  .prose a:hover {
+    color: var(--color-accent);
+  }
+
+  .prose strong {
+    font-weight: 600;
+  }
+
+  .prose li {
+    padding-inline-start: 0.4rem;
+    margin-block: 0.6rem;
+  }
+
+  .prose blockquote {
+    padding-inline-start: 1.5rem;
+    border-inline-start: 2px solid var(--color-accent);
+    color: var(--color-muted);
+  }
+
+  .prose :not(pre) > code {
+    font: 0.85em var(--font-mono);
+    background: var(--color-surface);
+    border: 1px solid var(--color-rule);
+    padding: 0.15em 0.35em;
+    border-radius: 3px;
+    overflow-wrap: anywhere;
+  }
+
+  .prose pre {
+    overflow-x: auto;
+    max-inline-size: 100%;
+    padding: 1.5rem;
+    border: 1px solid var(--color-rule);
+    border-radius: 3px;
+    background: var(--color-surface);
+    font: 0.78rem/1.8 var(--font-mono);
+    tab-size: 2;
+  }
+
+  .prose pre code {
+    font: inherit;
+  }
+
+  .prose .astro-code,
+  .prose .astro-code span {
+    color: var(--shiki-light);
+  }
+
+  [data-theme="dark"] .prose .astro-code,
+  [data-theme="dark"] .prose .astro-code span {
+    color: var(--shiki-dark);
+  }
+
+  .code-container {
+    position: relative;
+    margin-block: 2rem;
+  }
+
+  .code-container pre {
+    margin: 0;
+    padding-block-start: 3.25rem;
+  }
+
+  .prose .astro-code[data-language]::before {
+    content: attr(data-language);
+    display: block;
+    position: sticky;
+    inset-inline-start: 0;
+    inline-size: fit-content;
+    margin-block-end: 1rem;
+    color: var(--color-muted);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    user-select: none;
+  }
+
+  .code-container .astro-code[data-language] {
+    padding-block-start: 1rem;
+  }
+
+  .copy-button {
+    position: absolute;
+    inset: 0.6rem 0.75rem auto auto;
+    background: var(--color-surface);
+    color: var(--color-muted);
+    border: 1px solid var(--color-rule);
+    border-radius: 3px;
+    font-size: 0.7rem;
+    padding: 0.35rem 0.65rem;
+  }
+
+  .prose table {
+    display: block;
+    overflow-x: auto;
+    max-inline-size: 100%;
+    border-collapse: collapse;
+    margin-block: 2rem;
+    font-size: 0.85rem;
+  }
+
+  .prose th,
+  .prose td {
+    text-align: start;
+    padding: 0.8rem 1.1rem;
+    border-block-end: 1px solid var(--color-rule);
+    min-inline-size: 7rem;
+  }
+
+  .prose th {
+    font-weight: 550;
+  }
+
+  .prose hr {
+    border: 0;
+    border-block-start: 1px solid var(--color-rule);
+    margin-block: 3rem;
+  }
+
+  .prose figcaption {
+    color: var(--color-muted);
+    font-size: 0.75rem;
+    margin-block-start: 0.8rem;
+  }
+
+  .prose figure img {
+    inline-size: 100%;
+    border: 1px solid var(--color-rule);
+  }
+
+  .math-display {
+    max-inline-size: 100%;
+    overflow-x: auto;
+    padding-block: 0.75rem;
+    margin-block: 1.5rem;
+  }
+
+  .prose .footnotes {
+    font-size: 0.85rem;
+    border-block-start: 1px solid var(--color-rule);
+    margin-block-start: 3rem;
+    padding-block-start: 1rem;
+  }
+
+  .prose .footnotes h2 {
+    font-size: 1rem;
+  }
+
+  .experiment {
+    display: block;
+    margin-block: 2rem;
+    padding: 1.5rem;
+    border: 1px solid var(--color-rule);
+    border-radius: 3px;
+    background: var(--color-surface);
+  }
+
+  .experiment label {
+    display: block;
+    font-size: 0.8rem;
+  }
+
+  .experiment-result {
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .experiment input {
+    inline-size: 100%;
+    accent-color: var(--color-accent);
+    margin-block: 1rem;
+  }
+
+  .experiment-comparison {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.75rem;
+    color: var(--color-muted);
+    margin-block: 1.5rem;
+  }
+
+  .experiment-track {
+    block-size: 2rem;
+    overflow: clip;
+    border-block-end: 1px solid var(--color-rule);
+  }
+
+  .experiment-position {
+    inline-size: calc(100% - 1.5rem);
+    transform: translateX(50%);
+  }
+
+  .experiment-position[data-eased] {
+    transform: translateX(87.5%);
+  }
+
+  .experiment-marker {
+    display: block;
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+    background: var(--color-accent);
+    border-radius: 3px;
+  }
+
+  [data-linear] .experiment-marker {
+    background: var(--color-muted);
+  }
+
+  .experiment-play {
+    padding: 0.5rem 1rem;
+    background: none;
+    border: 1px solid var(--color-muted);
+    border-radius: 3px;
+    font-size: 0.8rem;
+  }
+
+  @media (width < 36rem) {
+    .prose pre {
+      padding-inline: 1rem;
+    }
+  }
+}
+
+@layer components {
+  .diagram-renderer {
+    position: fixed;
+    inset: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .prose .diagram {
+    overflow-x: auto;
+    padding: 1.5rem 1rem;
+    margin-block: 2rem;
+    border-block: 1px solid var(--color-rule);
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  .diagram > svg {
+    display: block;
+    min-inline-size: min(28rem, 100%);
+    margin-inline: auto;
+    block-size: auto;
+  }
+}

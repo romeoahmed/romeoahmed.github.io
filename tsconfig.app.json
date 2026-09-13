@@ -1,0 +1,9 @@
+{
+  "extends": "astro/tsconfigs/strictest",
+  "compilerOptions": {
+    "lib": ["ESNext"],
+    "erasableSyntaxOnly": true,
+    "types": ["astro/client", "web"]
+  },
+  "include": [".astro/types.d.ts", "src/**/*"]
+}

@@ -1,0 +1,31 @@
+@layer base {
+  :root {
+    color-scheme: light;
+
+    --color-page: oklch(97% 0.008 85deg);
+    --color-surface: oklch(99% 0.006 85deg);
+    --color-text: oklch(27% 0.012 210deg);
+    --color-muted: oklch(49% 0.018 210deg);
+    --color-depth: oklch(87% 0.02 160deg);
+    --color-rule: oklch(85% 0.012 85deg);
+    --color-accent: oklch(44% 0.065 195deg);
+    --color-shadow: oklch(28% 0.015 210deg / 9%);
+    --font-prose:
+      -apple-system, blinkmacsystemfont, "Segoe UI", "Noto Sans", "PingFang SC",
+      "Microsoft YaHei", sans-serif;
+    --font-mono: "SFMono-Regular", consolas, "Liberation Mono", monospace;
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --color-page: oklch(21% 0.012 210deg);
+    --color-surface: oklch(27% 0.015 210deg);
+    --color-text: oklch(89% 0.009 85deg);
+    --color-muted: oklch(71% 0.016 195deg);
+    --color-depth: oklch(36% 0.028 190deg);
+    --color-rule: oklch(35% 0.018 210deg);
+    --color-accent: oklch(76% 0.065 185deg);
+    --color-shadow: oklch(9% 0.01 210deg / 24%);
+  }
+}

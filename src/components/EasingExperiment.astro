@@ -1,0 +1,59 @@
+---
+import { messages } from "../i18n/messages";
+import type { Locale } from "../i18n/locales";
+interface Props {
+  locale?: Locale;
+}
+const { locale = "en" } = Astro.props;
+const t = messages[locale];
+---
+
+<easing-experiment class="experiment">
+  <label>
+    {t.timeProgress}
+    <input type="range" min="0" max="100" value="50" disabled />
+  </label>
+  <p class="experiment-result">
+    {t.easingValue}:{" "}
+    <output aria-label={t.easingValue} aria-live="off">
+      0.875
+    </output>
+  </p>
+  <div class="experiment-comparison" aria-hidden="true">
+    <span>{t.linear}</span>
+    <div class="experiment-track">
+      <div class="experiment-position" data-linear>
+        <span class="experiment-marker"></span>
+      </div>
+    </div>
+    <span>{t.easeOut}</span>
+    <div class="experiment-track">
+      <div class="experiment-position" data-eased>
+        <span class="experiment-marker"></span>
+      </div>
+    </div>
+  </div>
+  <button type="button" class="experiment-play" hidden>
+    {t.playMotion}
+  </button>
+  <p>{t.easingDescription}</p>
+  <noscript>{t.easingStatic}</noscript>
+</easing-experiment>
+
+<script>
+  import { mountEasing } from "../client/easing";
+
+  class EasingExperiment extends HTMLElement {
+    #dispose?: () => void;
+
+    connectedCallback() {
+      this.#dispose = mountEasing(this);
+    }
+
+    disconnectedCallback() {
+      this.#dispose?.();
+    }
+  }
+
+  customElements.define("easing-experiment", EasingExperiment);
+</script>

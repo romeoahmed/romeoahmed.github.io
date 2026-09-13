@@ -1,0 +1,124 @@
+---
+import type { CollectionEntry } from "astro:content";
+import type { MarkdownHeading } from "astro";
+import Page from "./Page.astro";
+import PostList from "../components/PostList.astro";
+import Icon from "../components/Icon.astro";
+import { localeInfo, dateLabel } from "../i18n/locales";
+import { tagLabel } from "../i18n/tags";
+import { messages } from "../i18n/messages";
+import { getPosts } from "../lib/collections";
+import { counterpart, postUrl, readingMinutes } from "../lib/publications";
+import { site } from "../lib/site";
+interface Props {
+  post: CollectionEntry<"posts">;
+  headings: readonly MarkdownHeading[];
+}
+const { post, headings } = Astro.props;
+const locale = post.data.locale;
+const t = messages[locale];
+const posts = await getPosts();
+const translation = counterpart(post, posts, localeInfo[locale].other);
+const sections = headings.filter(
+  ({ depth, slug }) => depth === 2 && slug !== "footnote-label",
+);
+const related = posts
+  .values()
+  .filter((entry) => entry.data.locale === locale && entry.id !== post.id)
+  .take(2)
+  .toArray();
+const alternates = [post, translation]
+  .filter((entry) => entry !== undefined)
+  .map((entry) => ({ locale: entry.data.locale, url: postUrl(entry) }));
+---
+
+<Page
+  locale={locale}
+  title={`${post.data.title} — ${site.author}`}
+  description={post.data.description}
+  alternates={alternates}
+  languageUrl={translation ? postUrl(translation) : undefined}
+  missingTranslation={!translation}
+>
+  <article class="article-page">
+    <a class="back-link" href={`/${locale}/`}>
+      <Icon name="back" />
+      {t.back}
+    </a>
+    <header class="article-heading">
+      <div class="eyebrow">
+        <span>
+          {post.data.tags.map((tag) => tagLabel(tag, locale)).join(" / ")}{" "}
+          {post.data.sample && <span class="sample-label">{t.sample}</span>}
+        </span>
+        <span>{t.readingTime(readingMinutes(post.body ?? ""))}</span>
+      </div>
+      <h1>
+        <span class="post-title" data-title-key={post.id}>
+          {post.data.title}
+        </span>
+      </h1>
+      <p class="lead">{post.data.description}</p>
+      <div class="article-meta">
+        <span>{site.author}</span>
+        <span aria-hidden="true">/</span>
+        <time datetime={post.data.publishedAt.toISOString()}>
+          {dateLabel(post.data.publishedAt, locale)}
+        </time>
+        {post.data.updatedAt && (
+          <span>
+            {t.updated}{" "}
+            <time datetime={post.data.updatedAt.toISOString()}>
+              {dateLabel(post.data.updatedAt, locale)}
+            </time>
+          </span>
+        )}
+      </div>
+    </header>
+    {!translation && (
+      <p class="missing-translation">
+        {t.unavailable}{" "}
+        <a href={`/${localeInfo[locale].other}/`}>{t.otherArchive} →</a>
+      </p>
+    )}
+    <div class="reading-layout">
+      <div class="prose">
+        <slot />
+      </div>
+      {sections.length > 1 && (
+        <nav class="toc" aria-label={t.contents}>
+          <p>{t.contents}</p>
+          <ol>
+            {sections.map((heading) => (
+              <li>
+                <a href={`#${heading.slug}`}>{heading.text}</a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )}
+    </div>
+    <p class="article-meta">
+      <span>
+        {t.textLicense}:{" "}
+        <a
+          href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
+          rel="license"
+        >
+          {post.data.license}
+        </a>
+      </span>
+      <span>
+        {t.codeLicense}: <a href="https://opensource.org/license/mit">MIT</a>
+      </span>
+    </p>
+  </article>
+  {related.length > 0 && (
+    <section class="related-section">
+      <header class="section-heading">
+        <h2>{t.related}</h2>
+      </header>
+      <PostList posts={related} locale={locale} />
+    </section>
+  )}
+</Page>

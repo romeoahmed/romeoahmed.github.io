@@ -1,0 +1,51 @@
+---
+import type { InferGetStaticPropsType } from "astro";
+import Page from "../../layouts/Page.astro";
+import SpatialMotif from "../../components/SpatialMotif.astro";
+import PostList from "../../components/PostList.astro";
+import { localePaths, locales } from "../../i18n/locales";
+import { messages } from "../../i18n/messages";
+import { getPosts } from "../../lib/collections";
+export const getStaticPaths = localePaths;
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+const { locale } = Astro.props;
+const t = messages[locale];
+const posts = await getPosts(locale);
+---
+
+<Page
+  locale={locale}
+  section="writing"
+  alternates={locales.map((locale) => ({ locale, url: `/${locale}/` }))}
+>
+  <section class="home-hero">
+    <div class="hero-copy">
+      <p class="eyebrow" data-reveal>
+        <span class="status-dot"></span>
+        {t.introduction}
+      </p>
+      <h1 data-reveal>
+        {t.headline.split("\n").map((line) => (
+          <span class="hero-line">{line}</span>
+        ))}
+      </h1>
+      <p class="hero-intro" data-reveal>
+        {t.intro}
+      </p>
+      <a class="text-link hero-link" href="#writing" data-reveal>
+        {t.recent}
+        <span class="text-link-arrow" aria-hidden="true">
+          ↓
+        </span>
+      </a>
+    </div>
+    <SpatialMotif />
+  </section>
+  <section id="writing" class="writing-section">
+    <header class="section-heading">
+      <h2>{t.recent}</h2>
+      <span class="section-count">{t.postCount(posts.length)}</span>
+    </header>
+    <PostList posts={posts} locale={locale} />
+  </section>
+</Page>

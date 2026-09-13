@@ -1,0 +1,117 @@
+@layer components {
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.75rem;
+    color: var(--color-muted);
+    margin-block: 2.5rem 3.5rem;
+  }
+
+  .article-heading .eyebrow {
+    justify-content: space-between;
+  }
+
+  .sample-label {
+    margin-inline-start: 1rem;
+  }
+
+  .article-heading {
+    max-inline-size: 49rem;
+  }
+
+  .article-heading h1 {
+    font-size: clamp(2.5rem, 4.5vw, 4.25rem);
+    margin-block: 1.3rem 1.6rem;
+  }
+
+  .article-meta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    font-size: 0.75rem;
+    color: var(--color-muted);
+    margin-block: 2rem 3rem;
+  }
+
+  .article-meta a {
+    text-decoration: underline;
+  }
+
+  .missing-translation {
+    padding-block: 0.8rem;
+    border-block-start: 1px solid var(--color-rule);
+    color: var(--color-muted);
+    font-size: 0.75rem;
+  }
+
+  .missing-translation a {
+    text-decoration: underline;
+  }
+
+  .reading-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 10rem;
+    gap: 3rem;
+    padding-block-start: 2rem;
+  }
+
+  .toc {
+    position: sticky;
+    inset-block-start: 2rem;
+    align-self: start;
+    color: var(--color-muted);
+    font-size: 0.72rem;
+  }
+
+  .toc p {
+    font-size: 0.65rem;
+    margin-block-end: 1rem;
+  }
+
+  .toc ol {
+    list-style: none;
+    padding: 0;
+    border-inline-start: 1px solid var(--color-rule);
+  }
+
+  .toc li {
+    margin-block: 0.8rem;
+    padding-inline-start: 1rem;
+  }
+
+  .toc a:hover,
+  .toc a[aria-current="location"] {
+    color: var(--color-accent);
+  }
+
+  .related-section {
+    margin-block-start: 5rem;
+  }
+
+  @media (width < 75rem) {
+    .reading-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .toc {
+      display: none;
+    }
+  }
+
+  @media (width < 54rem) {
+    .article-heading h1 {
+      max-inline-size: 17ch;
+    }
+  }
+
+  @media (width < 36rem) {
+    .back-link {
+      margin-block: 2rem;
+    }
+
+    .article-heading h1 {
+      font-size: 2.5rem;
+    }
+  }
+}

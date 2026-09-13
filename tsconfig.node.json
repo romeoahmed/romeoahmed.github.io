@@ -1,0 +1,15 @@
+{
+  "extends": "astro/tsconfigs/strictest",
+  "compilerOptions": {
+    "lib": ["ESNext"],
+    "erasableSyntaxOnly": true,
+    "types": ["node", "web"],
+    "checkJs": true
+  },
+  "include": [
+    "*.config.ts",
+    "eslint.config.mjs",
+    "tests/**/*.ts",
+    "src/env.d.ts"
+  ]
+}

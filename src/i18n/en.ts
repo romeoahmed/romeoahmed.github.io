@@ -1,0 +1,77 @@
+import type { Tag } from "./tags";
+
+const en = {
+  footnotes: "Footnotes",
+  footnoteBack: "Back to reference",
+  writing: "Writing",
+  notes: "Notes",
+  about: "About",
+  home: "Home",
+  skip: "Skip to content",
+  navigation: "Main navigation",
+  language: "Language",
+  theme: "Appearance",
+  light: "Light",
+  dark: "Dark",
+  system: "System",
+  introduction: "Romeo Ahmed’s notebook",
+  headline: "Things I’m\nworking out.",
+  intro: "Code, math, and whatever else gets me thinking.",
+  description:
+    "Romeo Ahmed’s personal blog. Notes on code, math, and everyday life, in English and Chinese.",
+  recent: "Recent writing",
+  postCount: (count: number) => `${count} ${count === 1 ? "post" : "posts"}`,
+  volume: "Personal notebook",
+  sample: "Example",
+  readingTime: (minutes: number) => `${minutes} min read`,
+  back: "Back to writing",
+  contents: "In this article",
+  related: "Keep reading",
+  textLicense: "Text",
+  codeLicense: "Code examples",
+  unavailable: "This article isn’t available in Chinese yet.",
+  otherArchive: "Browse Chinese writing",
+  copy: "Copy code",
+  copied: "Copied",
+  copyError: "Try again",
+  copyFailed: "Couldn’t copy. You can select the code and copy it yourself.",
+  notesTitle: "Before I forget",
+  notesIntro: "Loose ends, passing thoughts, and things to come back to.",
+  aboutTitle: "Hello, I’m Romeo.",
+  aboutIntro: "This is where I keep my notes.",
+  aboutBody:
+    "I write about code, math, and the questions that come up while making things. There’s room here for a diary entry or an essay about something else, too.",
+  aboutDetail:
+    "Some ideas need a whole article; others only need a few lines. I keep both. You’ll find writing in English and Chinese here, though not every piece has a translation.",
+  elsewhere: "Find me elsewhere",
+  feed: "Subscribe with RSS",
+  footer: "Glad you stopped by.",
+  updated: "Updated",
+  empty: "Nothing here yet. Come back soon.",
+  top: "Back to top",
+  chooseEdition: "Pick a language",
+  editionIntro: "Read the notebook in English.",
+  latestEssay: "Latest article",
+  notFoundTitle: "This page is missing",
+  notFoundBody:
+    "The link may be out of date, or the page may have moved. Head back to the blog to find something to read.",
+  timeProgress: "Elapsed time (%)",
+  easingValue: "Ease-out position",
+  linear: "Linear",
+  easeOut: "Ease-out",
+  playMotion: "Play both",
+  easingDescription:
+    "Both markers travel the same distance in 720 ms. Press play to compare their pace, or move the slider to inspect a moment.",
+  easingStatic:
+    "Halfway through the time, the linear marker is at 50% and the ease-out marker is at 87.5%.",
+  tags: {
+    design: "Design",
+    web: "Web",
+    mathematics: "Math",
+    interaction: "Interaction",
+    engineering: "Programming",
+  } satisfies Record<Tag, string>,
+};
+
+export type Messages = Readonly<typeof en>;
+export default en;

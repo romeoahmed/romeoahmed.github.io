@@ -1,0 +1,50 @@
+---
+import type { InferGetStaticPropsType } from "astro";
+import Mark from "../../components/Mark.astro";
+import Page from "../../layouts/Page.astro";
+import { localePaths, localeInfo, locales } from "../../i18n/locales";
+import { messages } from "../../i18n/messages";
+import { site } from "../../lib/site";
+export const getStaticPaths = localePaths;
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+const { locale } = Astro.props;
+const t = messages[locale];
+---
+
+<Page
+  locale={locale}
+  title={`${t.about} — ${site.author}`}
+  description={t.aboutIntro}
+  section="about"
+  languageUrl={`/${localeInfo[locale].other}/about/`}
+  alternates={locales.map((locale) => ({ locale, url: `/${locale}/about/` }))}
+>
+  <header class="page-heading">
+    <p class="eyebrow" data-reveal>
+      03 / {t.about}
+    </p>
+    <h1 data-reveal>{t.aboutTitle}</h1>
+    <p class="lead" data-reveal>
+      {t.aboutIntro}
+    </p>
+  </header>
+  <div class="about-layout">
+    <div class="prose">
+      <h2>{site.author}</h2>
+      <p class="personal-motto" lang="en">
+        Keep it simple, stupid.
+      </p>
+      <p>{t.aboutBody}</p>
+      <p>{t.aboutDetail}</p>
+      <h2>{t.elsewhere}</h2>
+      <p>
+        <a href={site.github}>GitHub ↗</a>
+        <br />
+        <a href={`/${locale}/rss.xml`}>{t.feed} ↗</a>
+      </p>
+    </div>
+    <div class="about-mark" aria-hidden="true">
+      <Mark />
+    </div>
+  </div>
+</Page>

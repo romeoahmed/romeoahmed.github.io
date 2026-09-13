@@ -1,0 +1,23 @@
+---
+import Page from "../layouts/Page.astro";
+import { messages } from "../i18n/messages";
+import { locales, localeInfo, home } from "../i18n/locales";
+import { site } from "../lib/site";
+---
+
+<Page title={`${messages.en.notFoundTitle} — ${site.author}`} noindex>
+  <div class="not-found">
+    <p class="eyebrow">404</p>
+    <h1>{messages.en.notFoundTitle}</h1>
+    {locales.map((locale) => (
+      <p lang={localeInfo[locale].tag}>{messages[locale].notFoundBody}</p>
+    ))}
+    <div class="error-links">
+      {locales.map((locale) => (
+        <a href={home(locale)} lang={localeInfo[locale].tag}>
+          {localeInfo[locale].label} →
+        </a>
+      ))}
+    </div>
+  </div>
+</Page>

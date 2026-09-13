@@ -1,0 +1,76 @@
+---
+import type { InferGetStaticPropsType } from "astro";
+import { render } from "astro:content";
+import Page from "../../layouts/Page.astro";
+import {
+  localePaths,
+  localeInfo,
+  locales,
+  dateLabel,
+} from "../../i18n/locales";
+import { messages } from "../../i18n/messages";
+import { getNotes } from "../../lib/collections";
+import { site } from "../../lib/site";
+export const getStaticPaths = localePaths;
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+const { locale } = Astro.props;
+const t = messages[locale];
+const notes = await Promise.all(
+  (await getNotes(locale)).map(async (note) => {
+    const { Content } = await render(note);
+    return { note, Content };
+  }),
+);
+---
+
+<Page
+  locale={locale}
+  title={`${t.notes} — ${site.author}`}
+  description={t.notesIntro}
+  section="notes"
+  languageUrl={`/${localeInfo[locale].other}/notes/`}
+  alternates={locales.map((locale) => ({ locale, url: `/${locale}/notes/` }))}
+>
+  <header class="page-heading">
+    <p class="eyebrow" data-reveal>
+      02 / {t.notes}
+    </p>
+    <h1 data-reveal>{t.notesTitle}</h1>
+    <p class="lead" data-reveal>
+      {t.notesIntro}
+    </p>
+  </header>
+  <div class="notes-list">
+    {notes.length === 0 && <p>{t.empty}</p>}
+    {notes.map(({ note, Content }) => (
+      <article class="note" id={note.data.slug} data-reveal>
+        <div class="note-meta">
+          <time datetime={note.data.publishedAt.toISOString()}>
+            {dateLabel(note.data.publishedAt, locale)}
+          </time>
+          {note.data.sample && <span>{t.sample}</span>}
+        </div>
+        <div class="prose">
+          <h2>
+            <a href={`#${note.data.slug}`}>{note.data.title}</a>
+          </h2>
+          <Content />
+          <p>
+            <small>
+              {t.textLicense}:{" "}
+              <a
+                href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
+                rel="license"
+              >
+                {note.data.license}
+              </a>
+              {" · "}
+              {t.codeLicense}:{" "}
+              <a href="https://opensource.org/license/mit">MIT</a>
+            </small>
+          </p>
+        </div>
+      </article>
+    ))}
+  </div>
+</Page>

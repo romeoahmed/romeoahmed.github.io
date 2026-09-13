@@ -1,0 +1,110 @@
+import { beforeEach, expect, test, vi } from "vitest";
+import { page } from "vitest/browser";
+import { mountDiagrams } from "../../src/client/diagrams";
+import { mountReading } from "../../src/client/reading";
+import "../../src/styles/global.css";
+
+const source =
+  "flowchart LR\naccTitle: Publishing\naccDescr: A note becomes an essay.\nA[Note] --> B[Essay]";
+
+beforeEach(({ onTestFinished }) => {
+  onTestFinished(() => {
+    vi.restoreAllMocks();
+    document.documentElement.removeAttribute("data-theme");
+    document.body.replaceChildren();
+  });
+});
+
+test("diagrams expose an accessible name, follow the palette, and remount without duplicates", async ({
+  onTestFinished,
+}) => {
+  document.documentElement.dataset["theme"] = "light";
+  document.body.innerHTML =
+    '<main data-reading data-copy="Copy code"><div class="prose"><pre><code class="language-mermaid"></code></pre></div></main>';
+  document.querySelector("code")!.textContent = source;
+  const pre = document.querySelector("pre")!;
+  onTestFinished(mountReading());
+  let dispose = mountDiagrams();
+  onTestFinished(() => dispose());
+  const diagram = page.getByRole("document", { name: "Publishing" });
+  await expect
+    .element(diagram)
+    .toHaveAccessibleDescription("A note becomes an essay.");
+  await expect.element(pre).not.toBeVisible();
+  await expect
+    .element(page.getByRole("button", { name: "Copy code" }))
+    .not.toBeInTheDocument();
+  const fill = () => {
+    const shape = document.querySelector(".diagram svg rect");
+    return shape ? getComputedStyle(shape).fill : undefined;
+  };
+  const light = fill();
+  expect(light).toBeDefined();
+  let blank = false;
+  const observer = new MutationObserver(() => {
+    if (pre.hidden && !document.querySelector(".diagram svg")) blank = true;
+  });
+  observer.observe(pre.parentElement!, { childList: true, subtree: true });
+  onTestFinished(() => observer.disconnect());
+  document.documentElement.dataset["theme"] = "dark";
+  await expect.element(diagram).toBeVisible();
+  await expect
+    .poll(fill)
+    .toSatisfy(
+      (color: string | undefined) => color !== undefined && color !== light,
+    );
+  observer.disconnect();
+  expect(blank).toBe(false);
+  dispose();
+  await expect.element(pre).toBeVisible();
+  expect(pre.textContent).toBe(source);
+  dispose = mountDiagrams();
+  await expect.element(diagram).toBeVisible();
+  expect(document.querySelectorAll(".diagram svg")).toHaveLength(1);
+});
+
+test("a disposed page cannot publish a diagram after fonts finish loading", async ({
+  onTestFinished,
+}) => {
+  document.body.innerHTML = '<pre><code class="language-mermaid"></code></pre>';
+  const pre = document.querySelector("pre")!;
+  pre.firstElementChild!.textContent = source;
+  const fonts = Promise.withResolvers<FontFaceSet>();
+  const ready = vi
+    .spyOn(document.fonts, "ready", "get")
+    .mockReturnValue(fonts.promise);
+  const dispose = mountDiagrams();
+  onTestFinished(dispose);
+  await expect.poll(() => ready.mock.calls.length).toBeGreaterThan(0);
+  dispose();
+  ready.mockRestore();
+  fonts.resolve(document.fonts);
+
+  // A successful remount proves the disposed render has left the shared queue.
+  const next = document.createElement("pre");
+  next.innerHTML = '<code class="language-mermaid"></code>';
+  next.firstElementChild!.textContent = source;
+  document.body.append(next);
+  pre.firstElementChild!.classList.remove("language-mermaid");
+  onTestFinished(mountDiagrams());
+  await expect
+    .element(page.getByRole("document", { name: "Publishing" }))
+    .toBeVisible();
+  await expect.element(pre).toBeVisible();
+  expect(document.querySelectorAll(".diagram svg")).toHaveLength(1);
+});
+
+test("an invalid diagram keeps its source readable without blocking the next diagram", async ({
+  onTestFinished,
+}) => {
+  document.body.innerHTML =
+    '<pre><code class="language-mermaid">not-a-diagram</code></pre><pre><code class="language-mermaid"></code></pre>';
+  const [invalid, valid] = document.querySelectorAll("code");
+  valid!.textContent = source;
+  onTestFinished(mountDiagrams());
+  await expect
+    .element(page.getByRole("document", { name: "Publishing" }))
+    .toBeVisible();
+  await expect.element(invalid!).toBeVisible();
+  expect(invalid!.textContent).toBe("not-a-diagram");
+});

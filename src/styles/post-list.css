@@ -1,0 +1,106 @@
+@layer components {
+  .post-list-container {
+    container: articles / inline-size;
+  }
+
+  .post-list {
+    display: grid;
+    grid-template-columns: 8.6rem minmax(0, 1fr);
+  }
+
+  .post-row {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    padding-block: 2.5rem;
+    border-block-end: 1px solid var(--color-rule);
+  }
+
+  .post-date {
+    padding-block-start: 0.12rem;
+    color: var(--color-muted);
+    font-size: 0.7rem;
+    display: grid;
+    align-content: start;
+    gap: 0.7rem;
+  }
+
+  .post-number {
+    color: var(--color-accent);
+    font: 0.62rem var(--font-mono);
+  }
+
+  .post-kind {
+    color: var(--color-muted);
+    font-size: 0.65rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+  }
+
+  .post-summary {
+    min-inline-size: 0;
+  }
+
+  .post-summary h3 {
+    margin-block: 0.75rem;
+    font-size: clamp(1.3rem, 2.5cqi, 1.8rem);
+    letter-spacing: -0.03em;
+  }
+
+  .post-summary h3 a {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: 1.5rem;
+  }
+
+  .post-summary h3 svg {
+    flex-shrink: 0;
+    margin-block-start: 0.3rem;
+    color: var(--color-muted);
+    transition: color 180ms;
+  }
+
+  .post-summary h3 a:is(:hover, :focus-visible) {
+    color: var(--color-accent);
+  }
+
+  .post-summary h3 a:is(:hover, :focus-visible) svg {
+    color: var(--color-accent);
+  }
+
+  .post-summary p {
+    max-inline-size: 41rem;
+    color: var(--color-muted);
+    font-size: 0.9rem;
+    line-height: 1.8;
+  }
+
+  .read-time {
+    display: block;
+    margin-block-start: 1rem;
+    color: var(--color-muted);
+    font-size: 0.65rem;
+  }
+
+  @container articles (width < 32rem) {
+    .post-list {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .post-date {
+      display: flex;
+      justify-content: space-between;
+      padding-block-end: 1rem;
+    }
+
+    .post-row {
+      padding-block: 1.8rem;
+    }
+
+    .post-summary h3 {
+      font-size: 1.45rem;
+    }
+  }
+}

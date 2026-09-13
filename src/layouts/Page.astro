@@ -1,0 +1,236 @@
+---
+import { ClientRouter } from "astro:transitions";
+import { localeInfo, home, type Locale } from "../i18n/locales";
+import { messages } from "../i18n/messages";
+import { site } from "../lib/site";
+import Icon from "../components/Icon.astro";
+import Mark from "../components/Mark.astro";
+// Link this stylesheet first so its layer order precedes conditional math styles.
+import styles from "../styles/global.css?url";
+import MathStyles from "../components/MathStyles.astro";
+interface Props {
+  locale?: Locale;
+  title?: string;
+  description?: string;
+  section?: "writing" | "notes" | "about";
+  alternates?: readonly { readonly locale: Locale; readonly url: string }[];
+  languageUrl?: string | undefined;
+  missingTranslation?: boolean;
+  noindex?: boolean;
+}
+const {
+  locale = "en",
+  title = `${site.author} — ${messages[locale].volume}`,
+  description = messages[locale].description,
+  section,
+  alternates = [],
+  languageUrl,
+  missingTranslation = false,
+  noindex = false,
+} = Astro.props;
+// Render once so math can be detected before the head and reused in the body.
+const content = await Astro.slots.render("default");
+const hasMath = content.includes("<math");
+const t = messages[locale];
+const other = localeInfo[locale].other;
+const canonical = new URL(Astro.url.pathname, site.url);
+const root = Astro.url.pathname === "/";
+const leave = {
+  name: "page-leave",
+  duration: "160ms",
+  easing: "ease-in",
+  fillMode: "both",
+};
+const enter = {
+  name: "page-enter",
+  duration: "400ms",
+  delay: "80ms",
+  easing: "cubic-bezier(0.2, 0, 0, 1)",
+  fillMode: "both",
+};
+const pageTransition = {
+  forwards: { old: leave, new: enter },
+  backwards: { old: leave, new: { ...enter, name: "page-return" } },
+};
+---
+
+<!doctype html>
+<html
+  lang={localeInfo[locale].tag}
+  transition:name="root"
+  transition:animate={pageTransition}
+>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href={styles} />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="generator" content={Astro.generator} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
+    <title>{title}</title>
+    <link rel="canonical" href={canonical} />
+    {alternates.map((alternate) => (
+      <link
+        rel="alternate"
+        hreflang={localeInfo[alternate.locale].tag}
+        href={new URL(alternate.url, site.url)}
+      />
+    ))}
+    {(root || Astro.url.pathname === home(locale)) && (
+      <link rel="alternate" hreflang="x-default" href={site.url + "/"} />
+    )}
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={`${site.author} — ${localeInfo[locale].label}`}
+      href={`/${locale}/rss.xml`}
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {hasMath && <MathStyles />}
+    <meta
+      property="og:type"
+      content={Astro.url.pathname.includes("/posts/") ? "article" : "website"}
+    />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content={site.author} />
+    <script is:inline>
+      (() => {
+        let choice = "system";
+        try {
+          choice = localStorage.getItem("theme") || "system";
+        } catch {
+          // Use the system theme if the saved preference cannot be read.
+        }
+        document.documentElement.dataset.theme =
+          choice === "light" || choice === "dark"
+            ? choice
+            : matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
+      })();
+    </script>
+    <ClientRouter fallback="none" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">
+      {t.skip}
+    </a>
+    <div class="site-shell">
+      <aside
+        class="author-rail"
+        aria-label={site.author}
+        transition:name="author"
+        transition:animate="none"
+      >
+        <a
+          class="identity"
+          href={root ? "/" : home(locale)}
+          aria-label={`${site.author} — ${t.home}`}
+        >
+          <span class="identity-mark">
+            <Mark />
+          </span>
+          <span class="identity-name">{site.author}</span>
+        </a>
+        <p class="motto" lang="en">
+          Keep it simple,
+          <br />
+          stupid.
+        </p>
+        <nav aria-label={t.navigation} class="main-nav">
+          {(["writing", "notes", "about"] as const).map((item, index) => (
+            <a
+              class="nav-link"
+              href={
+                item === "writing" ? home(locale) : `${home(locale)}${item}/`
+              }
+              aria-current={section === item && !root ? "page" : undefined}
+            >
+              <span class="nav-index" aria-hidden="true">
+                0{index + 1}
+              </span>
+              {t[item]}
+              <span class="nav-mark" aria-hidden="true">
+                ↗
+              </span>
+            </a>
+          ))}
+        </nav>
+        <div class="rail-bottom">
+          <div class="edition-switch" role="group" aria-label={t.language}>
+            <span lang={localeInfo[locale].tag}>
+              {localeInfo[locale].label}
+            </span>
+            <span aria-hidden="true">/</span>
+            <a
+              lang={localeInfo[other].tag}
+              class="language-link"
+              href={languageUrl ?? home(other)}
+              aria-label={
+                missingTranslation ? t.otherArchive : localeInfo[other].label
+              }
+            >
+              {localeInfo[other].label}
+            </a>
+          </div>
+          {missingTranslation && (
+            <p class="translation-notice">{t.unavailable}</p>
+          )}
+          <div class="rail-tools">
+            <button
+              class="theme-toggle"
+              type="button"
+              data-theme-toggle
+              aria-label={t.theme}
+              data-label={t.theme}
+              data-light={t.light}
+              data-dark={t.dark}
+              data-system={t.system}
+              hidden
+            >
+              <Icon name="sun" />
+              <span data-theme-label>{t.system}</span>
+            </button>
+            <a href={site.github} aria-label="GitHub">
+              <Icon name="github" />
+            </a>
+            <a href={`/${locale}/rss.xml`} aria-label={t.feed}>
+              <Icon name="rss" />
+            </a>
+          </div>
+        </div>
+      </aside>
+      <div class="page-column">
+        <header class="page-top">
+          <a href={root ? "/" : home(locale)}>{t.volume}</a>
+        </header>
+        <main
+          id="main"
+          tabindex="-1"
+          data-reading
+          data-references={content.includes("tml-ref")}
+          data-copy={t.copy}
+          data-copied={t.copied}
+          data-copy-error={t.copyError}
+          data-copy-failed={t.copyFailed}
+        >
+          <Fragment set:html={content} />
+        </main>
+        <footer class="site-footer">
+          <span>
+            © {new Date().getUTCFullYear()} {site.author}
+          </span>
+          <span>{t.footer}</span>
+          <a href="#main" aria-label={t.top}>
+            ↑
+          </a>
+        </footer>
+      </div>
+    </div>
+    <div class="sr-only" role="status" data-feedback></div>
+    <script src="../client/navigation.ts"></script>
+  </body>
+</html>

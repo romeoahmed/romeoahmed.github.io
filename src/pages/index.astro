@@ -1,0 +1,73 @@
+---
+import Page from "../layouts/Page.astro";
+import SpatialMotif from "../components/SpatialMotif.astro";
+import { locales, localeInfo } from "../i18n/locales";
+import { getPosts } from "../lib/collections";
+import { postUrl } from "../lib/publications";
+import { messages } from "../i18n/messages";
+const posts = await getPosts();
+---
+
+<Page alternates={locales.map((locale) => ({ locale, url: `/${locale}/` }))}>
+  <section class="home-hero root-hero">
+    <div class="hero-copy">
+      <p class="eyebrow" data-reveal>
+        <span class="status-dot"></span>
+        {messages.en.introduction}
+      </p>
+      <h1 data-reveal>
+        Keep it simple,
+        <br />
+        <span class="soft-text">stupid.</span>
+      </h1>
+      <p class="hero-intro" data-reveal>
+        {messages.en.intro}
+      </p>
+      <p class="root-chinese" lang="zh-Hans" data-reveal>
+        {messages["zh-hans"].intro}
+      </p>
+    </div>
+    <SpatialMotif />
+  </section>
+  <section class="edition-section">
+    <header class="section-heading">
+      <h2>
+        {messages.en.chooseEdition}{" "}
+        <span class="edition-subtitle" lang="zh-Hans">
+          {messages["zh-hans"].chooseEdition}
+        </span>
+      </h2>
+    </header>
+    <div class="edition-grid">
+      {locales.map((locale) => {
+        const latest = posts.find((post) => post.data.locale === locale);
+        return (
+          <article
+            lang={localeInfo[locale].tag}
+            class="edition-card"
+            data-reveal
+          >
+            <h3>
+              <a href={`/${locale}/`}>
+                {localeInfo[locale].label}
+                <span class="edition-arrow" aria-hidden="true">
+                  ↗
+                </span>
+              </a>
+            </h3>
+            <p>{messages[locale].editionIntro}</p>
+            {latest && (
+              <a class="edition-recent" href={postUrl(latest)}>
+                <span class="edition-recent-label">
+                  {messages[locale].latestEssay}
+                </span>
+                {latest.data.title}
+                <span aria-hidden="true">→</span>
+              </a>
+            )}
+          </article>
+        );
+      })}
+    </div>
+  </section>
+</Page>

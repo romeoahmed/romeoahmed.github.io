@@ -1,0 +1,50 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { dateLabel, type Locale } from "../i18n/locales";
+import { tagLabel } from "../i18n/tags";
+import { messages } from "../i18n/messages";
+import { postUrl, readingMinutes } from "../lib/publications";
+import Icon from "./Icon.astro";
+interface Props {
+  posts: readonly CollectionEntry<"posts">[];
+  locale: Locale;
+}
+const { posts, locale } = Astro.props;
+const t = messages[locale];
+---
+
+<div class="post-list-container">
+  <div class="post-list">
+    {posts.map((post, index) => (
+      <article class="post-row" data-reveal>
+        <div class="post-date">
+          <span class="post-number" aria-hidden="true">
+            {String(index + 1).padStart(2, "0")}
+          </span>
+          <time datetime={post.data.publishedAt.toISOString()}>
+            {dateLabel(post.data.publishedAt, locale)}
+          </time>
+        </div>
+        <div class="post-summary">
+          <div class="post-kind">
+            {post.data.tags.map((tag) => tagLabel(tag, locale)).join(" / ")}
+            {post.data.sample && <span>{t.sample}</span>}
+          </div>
+          <h3>
+            <a href={postUrl(post)}>
+              <span class="post-title" data-title-key={post.id}>
+                {post.data.title}
+              </span>
+              <Icon name="arrow" />
+            </a>
+          </h3>
+          <p>{post.data.description}</p>
+          <span class="read-time">
+            {t.readingTime(readingMinutes(post.body ?? ""))}
+          </span>
+        </div>
+      </article>
+    ))}
+  </div>
+  {posts.length === 0 && <p>{t.empty}</p>}
+</div>
