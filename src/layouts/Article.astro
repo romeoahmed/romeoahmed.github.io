@@ -9,14 +9,14 @@ import { ArrowLeft, ArrowRight } from "@lucide/astro";
 import { localeInfo, dateLabel } from "../i18n/locales";
 import { tagLabel, topicUrl } from "../i18n/tags";
 import { messages } from "../i18n/messages";
-import { getPosts } from "../lib/collections";
+import { getPosts } from "../publication/collections";
 import {
   counterpart,
   postUrl,
   readingMinutes,
   relatedPosts,
-} from "../lib/publications";
-import { site } from "../lib/site";
+} from "../publication/entries";
+import { site } from "../site";
 interface Props {
   post: CollectionEntry<"posts">;
   headings: readonly MarkdownHeading[];

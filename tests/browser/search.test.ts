@@ -1,7 +1,8 @@
 import { afterEach, expect, test } from "vitest";
 import { cdp, page, userEvent } from "vitest/browser";
 import "../../src/styles/global.css";
-import { mountSearch } from "../../src/client/search";
+import "../../src/components/search/search.css";
+import { mountSearch } from "../../src/components/search/search";
 
 const pages = import.meta.glob<string>("../../dist/*/index.html", {
   query: "?raw",

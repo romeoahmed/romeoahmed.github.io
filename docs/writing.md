@@ -20,13 +20,13 @@ draft: true
 
 Only `draft` is optional here. Slugs and translation keys use lowercase words joined by hyphens; the locale must match the folder. Keep public slugs stable. Posts receive separate URLs; note slugs become fragments.
 
-| Optional field | Meaning                                                |
-| -------------- | ------------------------------------------------------ |
-| `updatedAt`    | Revision date, displayed on articles                   |
-| `tags`         | IDs from [tags.ts](../src/i18n/tags.ts); default `[]`  |
-| `draft`        | Exclude from public output; default `false`            |
-| `sample`       | Display the sample label; default `false`              |
-| `license`      | Defaults to the only accepted value, `CC-BY-NC-SA-4.0` |
+| Optional field | Meaning                                                            |
+| -------------- | ------------------------------------------------------------------ |
+| `updatedAt`    | Revision date, displayed on articles                               |
+| `tags`         | IDs from [entries.ts](../src/publication/entries.ts); default `[]` |
+| `draft`        | Exclude from public output; default `false`                        |
+| `sample`       | Display the sample label; default `false`                          |
+| `license`      | Defaults to the only accepted value, `CC-BY-NC-SA-4.0`             |
 
 Use `YYYY-MM-DD` dates. Future dates do **not** schedule publication; `draft` controls visibility. The [content schema](../src/content.config.ts) is authoritative.
 
@@ -70,20 +70,20 @@ Diagrams render in the browser; without enhancement, readers see the source.
 From a locale content folder, MDX can import an Astro component:
 
 ```mdx
-import EasingExperiment from "../../../components/EasingExperiment.astro";
+import EasingExperiment from "../../embeds/easing/Easing.astro";
 
 <EasingExperiment locale="en" />
 ```
 
-Use `locale="zh-hans"` for Chinese. MDX executes at build time; only add trusted source.
+Use `locale="zh-hans"` for Chinese. Keep each embed’s code, copy, and styles under `src/content/embeds/`; import assets from `src/content/assets/`. Embeds accept props and own their effects, without importing the blog’s interface or navigation. MDX executes at build time; only add trusted source.
 
 ## Images and supporting detail
 
-Store images in `src/` for Astro optimization. Markdown accepts ordinary image syntax. For a caption in MDX:
+Store article images in `src/content/assets/` for Astro optimization. Markdown accepts ordinary image syntax. For a caption in MDX:
 
 ```mdx
-import Figure from "../../../components/Figure.astro";
-import image from "../../../assets/spacing.webp";
+import Figure from "../../embeds/Figure.astro";
+import image from "../../assets/spacing.webp";
 
 <Figure src={image} alt="Two layouts with different paragraph spacing.">
   The same text, with more room between paragraphs on the right.

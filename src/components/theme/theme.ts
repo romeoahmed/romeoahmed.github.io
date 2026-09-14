@@ -45,6 +45,10 @@ export function mountTheme() {
     const theme = resolveTheme(preference, media.matches);
     if (document.documentElement.dataset["theme"] !== theme)
       document.documentElement.dataset["theme"] = theme;
+    for (const icon of button.querySelectorAll<HTMLElement>(
+      "[data-theme-icon]",
+    ))
+      icon.hidden = icon.dataset["themeIcon"] !== preference;
     const text = button.dataset[preference] ?? preference;
     if (label) label.textContent = text;
     button.setAttribute("aria-label", `${name}: ${text}`);

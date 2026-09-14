@@ -1,13 +1,14 @@
 ---
 import type { InferGetStaticPropsType } from "astro";
 import { ArrowLeft } from "@lucide/astro";
-import { site } from "../../../lib/site";
+import { site } from "../../../site";
 import Page from "../../../layouts/Page.astro";
 import PostList from "../../../components/PostList.astro";
-import { getPosts } from "../../../lib/collections";
+import { getPosts } from "../../../publication/collections";
 import { localeInfo } from "../../../i18n/locales";
-import { tags, tagLabel, topicUrl } from "../../../i18n/tags";
+import { tagLabel, topicUrl } from "../../../i18n/tags";
 import { messages } from "../../../i18n/messages";
+import { tags } from "../../../publication/entries";
 
 export async function getStaticPaths() {
   const posts = await getPosts();

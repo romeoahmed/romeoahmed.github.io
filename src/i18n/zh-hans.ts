@@ -9,7 +9,6 @@ const zh = {
   home: "首页",
   skip: "跳到正文",
   navigation: "主导航",
-  language: "语言",
   theme: "外观",
   light: "浅色",
   dark: "深色",
@@ -64,14 +63,6 @@ const zh = {
   latestEssay: "最新文章",
   notFoundTitle: "没找到这一页",
   notFoundBody: "链接可能已经失效。回首页看看，也许还能找到想读的那篇。",
-  timeProgress: "经过的时间（%）",
-  easingValue: "缓出进度",
-  linear: "匀速",
-  easeOut: "缓出",
-  playMotion: "播放对比",
-  easingDescription:
-    "两个方块都用 720 毫秒走完轨道。一起播放，看它们如何抵达；也可以拖动滑块，停在某一刻。",
-  easingStatic: "时间过半时，匀速方块走完了 50% 的路程，缓出方块走完了 87.5%。",
   tags: {
     design: "设计",
     web: "网页",

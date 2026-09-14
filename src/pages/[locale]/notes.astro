@@ -11,8 +11,8 @@ import {
   dateLabel,
 } from "../../i18n/locales";
 import { messages } from "../../i18n/messages";
-import { getNotes } from "../../lib/collections";
-import { site } from "../../lib/site";
+import { getNotes } from "../../publication/collections";
+import { site } from "../../site";
 export const getStaticPaths = localePaths;
 type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 const { locale } = Astro.props;
@@ -34,7 +34,7 @@ const notes = await Promise.all(
 >
   <header class="page-heading">
     <p class="eyebrow" data-reveal>
-      02 / {t.notes}
+      {t.notes}
     </p>
     <h1 data-reveal>{t.notesTitle}</h1>
     <p class="lead" data-reveal>

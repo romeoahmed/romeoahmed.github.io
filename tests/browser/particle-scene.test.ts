@@ -1,8 +1,8 @@
 import { afterEach, expect, test, vi } from "vitest";
 import { cdp, userEvent } from "vitest/browser";
-import { mountParticleScene } from "../../src/client/particle-scene";
+import { mountParticleScene } from "../../src/components/particles/scene";
 import "../../src/styles/global.css";
-import "../../src/styles/home.css";
+import "../../src/components/particles/particles.css";
 
 let dispose = () => {};
 const originalTheme = document.documentElement.dataset["theme"];
@@ -131,6 +131,7 @@ test("navigation during GPU initialization releases the late device", async ({
   const mounting = mountParticleScene(host, controller.signal);
   await expect.poll(() => request).toHaveBeenCalled();
   controller.abort();
+  expect(host.querySelector("canvas")).toBeNull();
   pending.resolve(adapter);
   dispose = await mounting;
   expect(host.querySelector("canvas")).toBeNull();

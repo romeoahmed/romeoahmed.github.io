@@ -1,4 +1,4 @@
-import type { Tag } from "./tags";
+import type { Tag } from "../publication/entries";
 
 const en = {
   footnotes: "Footnotes",
@@ -9,7 +9,6 @@ const en = {
   home: "Home",
   skip: "Skip to content",
   navigation: "Main navigation",
-  language: "Language",
   theme: "Appearance",
   light: "Light",
   dark: "Dark",
@@ -66,15 +65,6 @@ const en = {
   notFoundTitle: "Page not found",
   notFoundBody:
     "This link no longer leads to a page. You may find what you were looking for on the home page.",
-  timeProgress: "Elapsed time (%)",
-  easingValue: "Ease-out progress",
-  linear: "Linear",
-  easeOut: "Ease-out",
-  playMotion: "Play both",
-  easingDescription:
-    "Both markers take 720 ms to cross the track. Play them together, or use the slider to look at a single moment.",
-  easingStatic:
-    "At halfway through the time, the linear marker has travelled 50% of the distance; the eased marker, 87.5%.",
   tags: {
     design: "Design",
     web: "Web",

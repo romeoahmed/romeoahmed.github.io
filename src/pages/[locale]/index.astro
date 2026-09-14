@@ -3,12 +3,13 @@ import "../../styles/home.css";
 import type { InferGetStaticPropsType } from "astro";
 import { ArrowDown } from "@lucide/astro";
 import Page from "../../layouts/Page.astro";
-import SpatialMotif from "../../components/SpatialMotif.astro";
+import ParticleField from "../../components/particles/ParticleField.astro";
 import PostList from "../../components/PostList.astro";
 import { localePaths, locales } from "../../i18n/locales";
 import { messages } from "../../i18n/messages";
-import { getPosts } from "../../lib/collections";
-import { tags, tagLabel, topicUrl } from "../../i18n/tags";
+import { getPosts } from "../../publication/collections";
+import { tagLabel, topicUrl } from "../../i18n/tags";
+import { tags } from "../../publication/entries";
 export const getStaticPaths = localePaths;
 type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 const { locale } = Astro.props;
@@ -41,7 +42,7 @@ const topics = tags.filter((tag) =>
         <ArrowDown class="text-link-arrow" />
       </a>
     </div>
-    <SpatialMotif />
+    <ParticleField />
   </section>
   <section id="writing">
     <header class="section-heading">

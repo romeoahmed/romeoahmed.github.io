@@ -1,14 +1,22 @@
 import { prepareTitleTransition } from "./title-transition";
-import { applyTheme, mountTheme } from "./theme";
+import { applyTheme, mountTheme } from "../components/theme/theme";
 import { mountReading } from "./reading";
-import { mountSearch } from "./search";
+import { mountSearch } from "../components/search/search";
+import { mountAnchors } from "./anchors";
+import { mountMotion } from "./motion";
 
 let disposePage = () => {};
 let firstPage = true;
 function mountPage() {
   disposePage();
   const controller = new AbortController();
-  const cleanups = [mountTheme(), mountReading(), mountSearch()];
+  const cleanups = [
+    mountTheme(),
+    mountReading(),
+    mountSearch(),
+    mountAnchors(),
+    mountMotion(firstPage),
+  ];
   // Dispose mounts that finish after their page has left.
   const own = async (mount: () => (() => void) | Promise<() => void>) => {
     if (controller.signal.aborted) return;
@@ -16,19 +24,8 @@ function mountPage() {
     if (controller.signal.aborted) cleanup();
     else cleanups.push(cleanup);
   };
-  void import("./anchors")
-    .then(({ mountAnchors }) => own(mountAnchors))
-    .catch(() => {
-      // Fragment navigation still works through Astro.
-    });
-  const reveal = firstPage;
-  void import("./motion")
-    .then(({ mountMotion }) => own(() => mountMotion(reveal)))
-    .catch(() => {
-      // Content is already visible without motion.
-    });
   firstPage = false;
-  if (document.querySelector("code.language-mermaid")) {
+  if (document.querySelector("pre[data-mermaid]")) {
     void import("./diagrams")
       .then(({ mountDiagrams }) => own(mountDiagrams))
       .catch(() => {
@@ -41,7 +38,7 @@ function mountPage() {
       ([entry]) => {
         if (!entry?.isIntersecting) return;
         observer.disconnect();
-        void import("./particle-scene")
+        void import("../components/particles/scene")
           .then(({ mountParticleScene }) =>
             own(() => mountParticleScene(host, controller.signal)),
           )

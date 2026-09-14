@@ -4,7 +4,6 @@
 @import url("./prose.css");
 @import url("./shell.css");
 @import url("./post-list.css");
-@import url("./search.css");
 
 @layer reset {
   *,
@@ -259,7 +258,6 @@
     .related-section,
     .expressive-code .copy,
     .search-dialog,
-    .experiment-play,
     .about-mark,
     .spatial-figure {
       display: none;

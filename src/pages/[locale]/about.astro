@@ -6,7 +6,7 @@ import Mark from "../../components/Mark.astro";
 import Page from "../../layouts/Page.astro";
 import { localePaths, localeInfo, locales } from "../../i18n/locales";
 import { messages } from "../../i18n/messages";
-import { site } from "../../lib/site";
+import { site } from "../../site";
 export const getStaticPaths = localePaths;
 type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 const { locale } = Astro.props;
@@ -22,7 +22,7 @@ const t = messages[locale];
 >
   <header class="page-heading">
     <p class="eyebrow" data-reveal>
-      03 / {t.about}
+      {t.about}
     </p>
     <h1 data-reveal>{t.aboutTitle}</h1>
     <p class="lead" data-reveal>

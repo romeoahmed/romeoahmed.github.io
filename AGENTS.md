@@ -14,7 +14,8 @@ One static Astro site for GitHub Pages, in English and Simplified Chinese. Read 
 
 - Consult official documentation before changing an integration. Prefer native APIs, recommended presets, and defaults; add dependencies or abstractions only for implemented needs.
 - Keep TypeScript on 6.x with strict, erasable types. Prefer pure transformations and local state for effects. Use `@types/web` through the native library replacement configured in `tsconfig.app.json`; tooling and tests retain Node types.
-- Keep interface translations in `src/i18n/`, content in locale folders, and markup in shared Astro templates. Preserve **Romeo Ahmed** and **Keep it simple, stupid.**; do not invent biography.
+- Keep site interface translations in `src/i18n/`, content in locale folders, and markup in shared Astro templates. Preserve **Romeo Ahmed** and **Keep it simple, stupid.**; do not invent biography.
+- Keep article embeds and assets in `src/content/`; embeds own their copy and effects and must not import site modules. Use props and shared CSS tokens as their boundary.
 - Keep reading and navigation usable before enhancement. Dispose browser effects and late async results on navigation.
 - Astro owns navigation and history, View Transitions own snapshots, and GSAP owns local motion. Preserve title travel and the **520 ms** recent-writing scroll; follow the design timing table.
 - Use OKLCH directly and Newly Baseline platform features. WebGPU is the support exception; retain the static motif when unavailable.

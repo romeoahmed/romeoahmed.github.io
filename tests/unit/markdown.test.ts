@@ -2,10 +2,24 @@ import { expect, it } from "vitest";
 import { markdownToHtml } from "satteri";
 import { mathPlugin } from "../../src/markdown/math";
 import { footnotesPlugin } from "../../src/markdown/footnotes";
+import { diagramsPlugin } from "../../src/markdown/diagrams";
 const options = {
   features: { math: true },
   mdastPlugins: [mathPlugin],
 };
+it("preserves diagram source as escaped text without changing ordinary fences", () => {
+  const { html } = markdownToHtml(
+    '```mermaid\nA["<script>{value}</script>"]\n```\n\n```ts\nconst x = 1;\n```',
+    {
+      hastPlugins: [diagramsPlugin],
+    },
+  );
+  expect(html).toContain("data-mermaid");
+  expect(html).toContain("data-pagefind-ignore");
+  expect(html).toContain("&lt;script&gt;{value}&lt;/script&gt;");
+  expect(html).not.toContain("<script>");
+  expect(html).toContain('class="language-ts"');
+});
 it("compiles math nodes while leaving fenced code literal", () => {
   const source = "$x^2$\n\n$$\n\\frac{1}{2}\n$$\n\n```txt\n$not_math$\n```";
   const { html } = markdownToHtml(source, options);

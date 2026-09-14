@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from "vitest";
-import { cssColorToLinear } from "../../src/lib/color";
+import { cssColorToLinear } from "../../src/client/color";
 import "../../src/styles/global.css";
 
 afterEach(() => document.documentElement.removeAttribute("data-theme"));

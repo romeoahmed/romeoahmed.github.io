@@ -1,13 +1,22 @@
 ---
 import type { CollectionEntry } from "astro:content";
 import { Font } from "astro:assets";
-import Search from "../components/Search.astro";
+import ThemeToggle from "../components/theme/ThemeToggle.astro";
+import Search from "../components/search/Search.astro";
 import { ClientRouter } from "astro:transitions";
 import { localeInfo, home, type Locale } from "../i18n/locales";
 import { messages } from "../i18n/messages";
-import { site } from "../lib/site";
-import { ArrowUp, ArrowUpRight, Rss, Sun } from "@lucide/astro";
+import { site } from "../site";
+import {
+  ArrowUp,
+  Languages,
+  NotebookPen,
+  Rss,
+  StickyNote,
+  UserRound,
+} from "@lucide/astro";
 import Mark from "../components/Mark.astro";
+import GitHub from "../assets/github.svg";
 // Establish cascade order before conditional math styles.
 import styles from "../styles/global.css?url";
 import MathStyles from "../components/MathStyles.astro";
@@ -55,9 +64,16 @@ const structuredData = article && {
   author: { "@type": "Person", name: site.author, url: site.github },
 };
 const root = Astro.url.pathname === "/";
-const navigation = (["writing", "notes", "about"] as const).map((item) => ({
+const navigation = (
+  [
+    ["writing", NotebookPen],
+    ["notes", StickyNote],
+    ["about", UserRound],
+  ] as const
+).map(([item, icon]) => ({
   label: t[item],
   href: item === "writing" ? home(locale) : `${home(locale)}${item}/`,
+  icon,
 }));
 const leave = {
   name: "page-leave",
@@ -186,54 +202,35 @@ const pageTransition = {
           stupid.
         </p>
         <nav aria-label={t.navigation} class="main-nav">
-          {navigation.map(({ label, href }, index) => (
+          {navigation.map(({ label, href, icon: Icon }) => (
             <a
               class="nav-link"
               href={href}
               aria-current={Astro.url.pathname === href ? "page" : undefined}
             >
-              <span class="nav-index" aria-hidden="true">
-                0{index + 1}
-              </span>
+              <Icon class="nav-icon" aria-hidden="true" />
               {label}
-              <ArrowUpRight class="nav-mark" />
             </a>
           ))}
         </nav>
         <div class="rail-bottom">
-          <div class="edition-switch" role="group" aria-label={t.language}>
-            <span lang={localeInfo[locale].tag}>
-              {localeInfo[locale].label}
-            </span>
-            <span aria-hidden="true">/</span>
-            <a
-              lang={localeInfo[other].tag}
-              hreflang={localeInfo[other].tag}
-              class="language-link"
-              href={languageUrl ?? home(other)}
-              aria-label={
-                missingTranslation ? t.otherArchive : localeInfo[other].label
-              }
-            >
-              {localeInfo[other].label}
-            </a>
-          </div>
+          <a
+            lang={localeInfo[other].tag}
+            hreflang={localeInfo[other].tag}
+            class="language-link"
+            href={languageUrl ?? home(other)}
+            aria-label={
+              missingTranslation ? t.otherArchive : localeInfo[other].label
+            }
+          >
+            <Languages aria-hidden="true" />
+            {localeInfo[other].label}
+          </a>
           <div class="rail-tools">
-            <button
-              class="theme-toggle"
-              type="button"
-              data-theme-toggle
-              aria-label={t.theme}
-              data-label={t.theme}
-              data-light={t.light}
-              data-dark={t.dark}
-              data-system={t.system}
-              hidden
-            >
-              <Sun />
-              <span data-theme-label>{t.system}</span>
-            </button>
-            <a href={site.github}>GitHub</a>
+            <ThemeToggle locale={locale} />
+            <a href={site.github} aria-label="GitHub">
+              <GitHub width="20" height="20" aria-hidden="true" />
+            </a>
             <a href={`/${locale}/rss.xml`} aria-label={t.feed}>
               <Rss />
             </a>

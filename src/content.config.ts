@@ -1,7 +1,7 @@
 import { defineCollection } from "astro:content";
 import { z } from "astro/zod";
 import { glob } from "astro/loaders";
-import { tags } from "./i18n/tags";
+import { tags } from "./publication/entries";
 import { isLocale, locales } from "./i18n/locales";
 
 const schema = z.object({

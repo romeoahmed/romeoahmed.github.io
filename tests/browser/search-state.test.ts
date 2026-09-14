@@ -1,6 +1,7 @@
 import { expect, test as baseTest, vi } from "vitest";
-import { page, userEvent } from "vitest/browser";
-import { mountSearch } from "../../src/client/search";
+import { cdp, page, userEvent } from "vitest/browser";
+import { mountSearch } from "../../src/components/search/search";
+import html from "../../dist/en/index.html?raw";
 
 const index = vi.hoisted(() => ({
   init: vi.fn<() => Promise<void>>(),
@@ -9,11 +10,6 @@ const index = vi.hoisted(() => ({
 }));
 vi.mock("/dist/pagefind/pagefind.js", () => ({ createInstance: () => index }));
 
-const pages = import.meta.glob<string>("../../dist/en/index.html", {
-  query: "?raw",
-  import: "default",
-  eager: true,
-});
 const result = (title: string) => ({
   data: () =>
     Promise.resolve({
@@ -27,10 +23,7 @@ const test = baseTest.extend("dispose", { auto: true }, ({}, { onCleanup }) => {
   index.init.mockReset().mockResolvedValue(undefined);
   index.debouncedSearch.mockReset();
   index.destroy.mockReset().mockResolvedValue(undefined);
-  const doc = new DOMParser().parseFromString(
-    pages["../../dist/en/index.html"]!,
-    "text/html",
-  );
+  const doc = new DOMParser().parseFromString(html, "text/html");
   document.body.replaceChildren(
     doc.querySelector(".search-trigger")!,
     doc.querySelector("dialog")!,
@@ -41,6 +34,41 @@ const test = baseTest.extend("dispose", { auto: true }, ({}, { onCleanup }) => {
     document.body.replaceChildren();
   });
   return dispose;
+});
+
+test("composition waits for committed text and invalidates an earlier query", async () => {
+  const pending = Promise.withResolvers<unknown>();
+  index.debouncedSearch
+    .mockReturnValueOnce(pending.promise)
+    .mockResolvedValue({ results: [result("Committed")] });
+  await page.getByRole("button", { name: "Search the notebook" }).click();
+  const input = page.getByRole("searchbox");
+  await input.fill("before");
+  await expect.poll(() => index.debouncedSearch).toHaveBeenCalledWith("before");
+  await cdp().send("Input.imeSetComposition", {
+    text: "中文",
+    selectionStart: 2,
+    selectionEnd: 2,
+    replacementStart: 0,
+    replacementEnd: 6,
+  });
+  pending.resolve({ results: [result("Old")] });
+  await new Promise(requestAnimationFrame);
+  expect(index.debouncedSearch).toHaveBeenCalledOnce();
+  await expect.element(page.getByRole("link")).not.toBeInTheDocument();
+  await cdp().send("Input.insertText", { text: "中文" });
+  await expect
+    .poll(() => index.debouncedSearch)
+    .toHaveBeenLastCalledWith("中文");
+  await expect
+    .element(page.getByRole("link", { name: "Committed" }))
+    .toBeVisible();
+  await userEvent.keyboard("{Tab}");
+  await expect
+    .element(page.getByRole("link", { name: "Committed" }))
+    .toHaveFocus();
+  await userEvent.keyboard("{Control>}k{/Control}");
+  await expect.element(input).toHaveFocus();
 });
 
 test("older results cannot overwrite a newer query or a cleared input", async () => {

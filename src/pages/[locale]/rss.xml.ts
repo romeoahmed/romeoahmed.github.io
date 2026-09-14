@@ -1,14 +1,14 @@
 import rss from "@astrojs/rss";
-import type { APIContext } from "astro";
-import { localePaths, isLocale, localeInfo } from "../../i18n/locales";
+import type { APIRoute, InferGetStaticPropsType } from "astro";
+import { localePaths, localeInfo } from "../../i18n/locales";
 import { messages } from "../../i18n/messages";
-import { getPosts, getNotes } from "../../lib/collections";
-import { published, postUrl } from "../../lib/publications";
-import { site } from "../../lib/site";
+import { getPosts, getNotes } from "../../publication/collections";
+import { published, postUrl } from "../../publication/entries";
+import { site } from "../../site";
 export const getStaticPaths = localePaths;
-export async function GET({ params }: APIContext) {
-  if (!isLocale(params.locale)) throw new Error("Invalid feed locale");
-  const locale = params.locale;
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+export const GET: APIRoute<Props> = async ({ props: { locale } }) => {
   const [posts, notes] = await Promise.all([
     getPosts(locale),
     getNotes(locale),
@@ -31,4 +31,4 @@ export async function GET({ params }: APIContext) {
     })),
     customData: `<language>${localeInfo[locale].tag}</language>`,
   });
-}
+};

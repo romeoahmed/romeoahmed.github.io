@@ -1,5 +1,5 @@
-import { messages } from "../i18n/messages";
-import { isLocale } from "../i18n/locales";
+import { messages } from "../../i18n/messages";
+import { isLocale } from "../../i18n/locales";
 
 // Describe only the Pagefind API used here; its generated bundle has no importable types.
 interface SearchResult {
@@ -133,7 +133,15 @@ export function mountSearch(bundlePath = "/pagefind/", baseUrl?: string) {
     },
     { signal },
   );
-  input.addEventListener("input", () => void search(), { signal });
+  input.addEventListener(
+    "input",
+    (event) => {
+      if (event.isComposing) request++;
+      else void search();
+    },
+    { signal },
+  );
+  input.addEventListener("compositionend", () => void search(), { signal });
   more.addEventListener("click", () => void append(request), { signal });
   dialog.addEventListener(
     "click",
@@ -153,10 +161,15 @@ export function mountSearch(bundlePath = "/pagefind/", baseUrl?: string) {
   document.addEventListener(
     "keydown",
     (event) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+      if (
+        !event.defaultPrevented &&
+        !event.isComposing &&
+        (event.metaKey || event.ctrlKey) &&
+        event.key.toLowerCase() === "k"
+      ) {
         event.preventDefault();
-        dialog.showModal();
-        input.focus();
+        if (dialog.open) input.focus();
+        else dialog.showModal();
       }
     },
     { signal },

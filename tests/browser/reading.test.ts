@@ -76,3 +76,23 @@ test("the table of contents follows reading in both directions and ignores missi
   await expect.element(one).not.toHaveAttribute("aria-current");
   await expect.element(two).not.toHaveAttribute("aria-current");
 });
+
+test("an article without contents does not reserve a sidebar or an empty row", () => {
+  document.body.innerHTML = `
+    <div class="page-column" style="width:50rem">
+      <div class="reading-layout"><div class="prose" style="max-inline-size:none">A short article.</div></div>
+    </div>`;
+  const column = document.querySelector<HTMLElement>(".page-column")!;
+  const layout = document.querySelector(".reading-layout")!;
+  const prose = document.querySelector(".prose")!;
+  for (const width of ["50rem", "30rem"]) {
+    column.style.width = width;
+    const bounds = layout.getBoundingClientRect();
+    const text = prose.getBoundingClientRect();
+    expect(text.width).toBeCloseTo(bounds.width, 0);
+    expect(text.top - bounds.top).toBeCloseTo(
+      parseFloat(getComputedStyle(layout).paddingBlockStart),
+      0,
+    );
+  }
+});

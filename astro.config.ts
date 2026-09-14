@@ -3,16 +3,19 @@ import { satteri } from "@astrojs/markdown-satteri";
 import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
 import pagefind from "astro-pagefind";
+import expressiveCode from "astro-expressive-code";
 import { locales } from "./src/i18n/locales.ts";
-import { site } from "./src/lib/site.ts";
+import { site } from "./src/site.ts";
 import { footnotesPlugin } from "./src/markdown/footnotes.ts";
 import { mathPlugin } from "./src/markdown/math.ts";
-import { codePlugin } from "./src/markdown/code.ts";
+import { codeOptions } from "./src/markdown/code.ts";
+import { diagramsPlugin } from "./src/markdown/diagrams.ts";
 
 export default defineConfig({
   site: site.url,
   trailingSlash: "always",
   integrations: [
+    expressiveCode(codeOptions),
     mdx(),
     sitemap(),
     pagefind({
@@ -76,11 +79,10 @@ export default defineConfig({
     routing: { prefixDefaultLocale: true },
   },
   markdown: {
-    syntaxHighlight: false,
     processor: satteri({
       features: { math: true },
       mdastPlugins: [mathPlugin],
-      hastPlugins: [footnotesPlugin, codePlugin],
+      hastPlugins: [footnotesPlugin, diagramsPlugin],
     }),
   },
 });

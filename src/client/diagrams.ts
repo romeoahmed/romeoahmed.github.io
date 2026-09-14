@@ -1,5 +1,5 @@
 import mermaid from "mermaid";
-import { cssColorToHex } from "../lib/color";
+import { cssColorToHex } from "./color";
 
 // Mermaid configuration is global; serialize it with rendering across page lifetimes.
 let pending = Promise.resolve();
@@ -11,10 +11,10 @@ let pending = Promise.resolve();
  */
 export function mountDiagrams() {
   const entries = Array.from(
-    document.querySelectorAll<HTMLElement>("pre > code.language-mermaid"),
-    (code) => ({
-      source: code.textContent,
-      pre: code.parentElement!,
+    document.querySelectorAll<HTMLElement>("pre[data-mermaid]"),
+    (pre) => ({
+      source: pre.textContent,
+      pre,
       diagram: document.createElement("div"),
     }),
   );

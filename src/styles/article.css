@@ -44,10 +44,13 @@
   }
 
   .reading-layout {
+    padding-block-start: 2rem;
+  }
+
+  .reading-layout:has(> .toc) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 10rem;
     gap: 3rem;
-    padding-block-start: 2rem;
   }
 
   .reading-layout > .prose {
@@ -100,7 +103,7 @@
   }
 
   @container page (width < 48rem) {
-    .reading-layout {
+    .reading-layout:has(> .toc) {
       grid-template-columns: minmax(0, 1fr);
     }
 

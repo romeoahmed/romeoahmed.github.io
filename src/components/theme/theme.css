@@ -1,0 +1,28 @@
+@layer components {
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 0;
+    padding: 0;
+    background: none;
+    margin-inline-end: auto;
+    font-size: 0.75rem;
+    min-block-size: 2.75rem;
+  }
+
+  .theme-toggle svg {
+    inline-size: 1rem;
+  }
+
+  @media (width < 54rem) {
+    .theme-toggle {
+      min-inline-size: 2.75rem;
+      justify-content: center;
+    }
+
+    .theme-toggle [data-theme-label] {
+      display: none;
+    }
+  }
+}

@@ -7,7 +7,7 @@ import {
   relatedPosts,
   readingMinutes,
   type Publication,
-} from "../../src/lib/publications";
+} from "../../src/publication/entries";
 import { dateLabel, isLocale } from "../../src/i18n/locales";
 const entry = (
   id: string,

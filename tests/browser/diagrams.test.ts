@@ -18,9 +18,8 @@ test("diagrams expose an accessible name, follow the palette, and remount withou
   onTestFinished,
 }) => {
   document.documentElement.dataset["theme"] = "light";
-  document.body.innerHTML =
-    '<div class="prose"><pre><code class="language-mermaid"></code></pre></div>';
-  document.querySelector("code")!.textContent = source;
+  document.body.innerHTML = '<div class="prose"><pre data-mermaid></pre></div>';
+  document.querySelector("pre")!.textContent = source;
   const pre = document.querySelector("pre")!;
   let dispose = mountDiagrams();
   onTestFinished(() => dispose());
@@ -61,9 +60,9 @@ test("diagrams expose an accessible name, follow the palette, and remount withou
 test("a disposed page cannot publish a diagram after fonts finish loading", async ({
   onTestFinished,
 }) => {
-  document.body.innerHTML = '<pre><code class="language-mermaid"></code></pre>';
+  document.body.innerHTML = "<pre data-mermaid></pre>";
   const pre = document.querySelector("pre")!;
-  pre.firstElementChild!.textContent = source;
+  pre.textContent = source;
   const fonts = Promise.withResolvers<FontFaceSet>();
   const ready = vi
     .spyOn(document.fonts, "ready", "get")
@@ -77,10 +76,10 @@ test("a disposed page cannot publish a diagram after fonts finish loading", asyn
 
   // A new mount must still render after the previous queued work is disposed.
   const next = document.createElement("pre");
-  next.innerHTML = '<code class="language-mermaid"></code>';
-  next.firstElementChild!.textContent = source;
+  next.dataset["mermaid"] = "";
+  next.textContent = source;
   document.body.append(next);
-  pre.firstElementChild!.classList.remove("language-mermaid");
+  pre.removeAttribute("data-mermaid");
   onTestFinished(mountDiagrams());
   await expect
     .element(page.getByRole("document", { name: "Publishing" }))
@@ -93,8 +92,8 @@ test("an invalid diagram keeps its source readable without blocking the next dia
   onTestFinished,
 }) => {
   document.body.innerHTML =
-    '<pre><code class="language-mermaid">not-a-diagram</code></pre><pre><code class="language-mermaid"></code></pre>';
-  const [invalid, valid] = document.querySelectorAll("code");
+    "<pre data-mermaid>not-a-diagram</pre><pre data-mermaid></pre>";
+  const [invalid, valid] = document.querySelectorAll("pre");
   valid!.textContent = source;
   onTestFinished(mountDiagrams());
   await expect

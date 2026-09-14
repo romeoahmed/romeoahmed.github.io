@@ -22,8 +22,8 @@ import {
   type SceneContext,
 } from "@babylonjs/lite";
 import { gsap } from "gsap";
-import { cssColorToLinear } from "../lib/color";
-import { createParticleField } from "../lib/particle-field";
+import { cssColorToLinear } from "../../client/color";
+import { createParticleField } from "./field";
 
 const varyings = `
 struct VertexOutput {
@@ -143,18 +143,18 @@ export async function mountParticleScene(
       }
     });
   };
+  signal.addEventListener("abort", dispose, { once: true });
   try {
     stage.append(canvas);
     const gpu = await createEngine(canvas, {
       srgb: true,
       maxDevicePixelRatio: 1.75,
     });
-    engine = gpu;
-    if (signal.aborted) {
-      dispose();
+    if (disposed) {
+      disposeEngine(gpu);
       return dispose;
     }
-    signal.addEventListener("abort", dispose, { once: true });
+    engine = gpu;
     enableAsyncShaderPipelineCompilation(gpu);
     // Enable recovery before creating geometry so Lite can rebuild it after device loss.
     recovery = enableDeviceLostSceneRecovery(gpu, {

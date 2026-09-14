@@ -1,0 +1,35 @@
+---
+import { Monitor, Sun, Moon } from "@lucide/astro";
+import { messages } from "../../i18n/messages";
+import type { Locale } from "../../i18n/locales";
+import "./theme.css";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = messages[locale];
+---
+
+<button
+  class="theme-toggle"
+  type="button"
+  data-theme-toggle
+  aria-label={t.theme}
+  data-label={t.theme}
+  data-light={t.light}
+  data-dark={t.dark}
+  data-system={t.system}
+  hidden
+>
+  <span data-theme-icon="system" aria-hidden="true">
+    <Monitor />
+  </span>
+  <span data-theme-icon="light" aria-hidden="true" hidden>
+    <Sun />
+  </span>
+  <span data-theme-icon="dark" aria-hidden="true" hidden>
+    <Moon />
+  </span>
+  <span data-theme-label>{t.system}</span>
+</button>

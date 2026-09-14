@@ -1,14 +1,8 @@
 import type { Locale } from "./locales";
 import { messages } from "./messages";
 
-export const tags = [
-  "design",
-  "web",
-  "mathematics",
-  "interaction",
-  "engineering",
-] as const;
-export type Tag = (typeof tags)[number];
+import type { Tag } from "../publication/entries";
+
 export const tagLabel = (tag: Tag, locale: Locale) =>
   messages[locale].tags[tag];
 export const topicUrl = (tag: Tag, locale: Locale) =>

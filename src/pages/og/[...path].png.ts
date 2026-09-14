@@ -1,6 +1,6 @@
 import type { GetStaticPaths, InferGetStaticPropsType, APIRoute } from "astro";
-import { getPosts } from "../../lib/collections";
-import { socialImage } from "../../lib/social-image";
+import { getPosts } from "../../publication/collections";
+import { socialImage } from "../../publication/social-image";
 import { locales, localeInfo } from "../../i18n/locales";
 import { messages } from "../../i18n/messages";
 

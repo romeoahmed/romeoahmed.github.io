@@ -1,11 +1,11 @@
 ---
-import { messages } from "../i18n/messages";
-import type { Locale } from "../i18n/locales";
+import { copy } from "./copy";
+import "./easing.css";
 interface Props {
-  locale?: Locale;
+  locale?: keyof typeof copy;
 }
 const { locale = "en" } = Astro.props;
-const t = messages[locale];
+const t = copy[locale];
 ---
 
 <easing-experiment class="experiment">
@@ -41,7 +41,7 @@ const t = messages[locale];
 </easing-experiment>
 
 <script>
-  import { mountEasingExperiment } from "../client/easing-experiment";
+  import { mountEasingExperiment } from "./motion";
 
   class EasingExperiment extends HTMLElement {
     #dispose?: () => void;

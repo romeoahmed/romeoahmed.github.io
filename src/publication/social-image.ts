@@ -1,6 +1,6 @@
 import { readFile, readdir } from "node:fs/promises";
 import { Renderer, type Node } from "takumi-js/node";
-import { site } from "./site";
+import { site } from "../site";
 
 const family = "Noto Sans SC";
 let renderer: Promise<Renderer> | undefined;

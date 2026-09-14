@@ -4,26 +4,37 @@ Astro generates static HTML for GitHub Pages. Reading, navigation, code highligh
 
 ## Source map
 
-| Location                                | Responsibility                                                      |
-| --------------------------------------- | ------------------------------------------------------------------- |
-| `src/pages/`                            | Routes, RSS, and sharing-image endpoints                            |
-| `src/layouts/`, `src/components/`       | Document shell, article layout, reusable UI                         |
-| `src/content/`, `src/content.config.ts` | Localized writing and schema                                        |
-| `src/markdown/`                         | Code, math, and footnote transformations                            |
-| `src/i18n/`                             | Locales, interface copy, tag labels                                 |
-| `src/lib/`                              | Content access, publication rules, colors, particles, sharing cards |
-| `src/client/`                           | Browser features and their lifetimes                                |
-| `src/styles/`                           | Shared and page-specific styles                                     |
+| Location                | Responsibility                                                           |
+| ----------------------- | ------------------------------------------------------------------------ |
+| `src/pages/`            | Routes, feeds, and sharing-image endpoints                               |
+| `src/layouts/`          | Document shell and article composition                                   |
+| `src/components/`       | Site UI; theme, search, and particles colocate their implementation      |
+| `src/content/`          | Localized writing, article embeds, and article assets                    |
+| `src/content.config.ts` | Collection loaders and frontmatter validation                            |
+| `src/publication/`      | Collection access, pure publication rules, and sharing cards             |
+| `src/markdown/`         | Build-time code configuration, math, diagrams, and footnotes             |
+| `src/i18n/`             | Site locales, interface copy, and topic labels                           |
+| `src/client/`           | Navigation lifetimes, reading enhancements, motion, and color conversion |
+| `src/styles/`           | Site tokens, shared presentation, and page layouts                       |
+| `src/site.ts`           | Public site identity                                                     |
 
-`Page.astro` owns the document; `Article.astro` composes it for posts. `collections.ts` accesses Astro content, while `publications.ts` handles publication rules. `lifecycle.ts` connects browser mounts to navigation. Keep this as one package; the manifest and lockfile own dependency versions.
+## Dependencies and APIs
 
-Styles follow their consumers. Page-specific stylesheets load through their templates; `global.css` establishes cascade order and shared styles. The cascade is `reset, vendor, base, components, utilities`. UI icons use direct [Lucide](https://lucide.dev/guide/astro/getting-started) imports; the mark and particle motif remain custom.
+Routes load content through `publication/collections.ts`; `entries.ts` provides pure filtering, ordering, translation, and related-reading functions over readonly inputs. Collection validation includes drafts. UI templates consume these results; publication rules do not import templates or interface copy. `Page.astro` owns the document, and `Article.astro` composes the reading layout.
+
+Article source imports only its own assets and `content/embeds/`. Each embed owns its props, copy, styles, and effects. The site renders articles through Astro Content Collections and does not import an experiment's implementation. Embeds do not import site modules, query the site shell, or subscribe to router events. ESLint restricts static imports from embed TypeScript and Astro files. The shared CSS custom properties are their presentation contract; pass other inputs through props.
+
+Browser mounts keep mutable state in closures and return cleanup functions. `client/lifecycle.ts` coordinates them with Astro navigation; lazy mounts that finish after disposal are immediately released. Theme, search, and particle implementation details stay beside their components. The small anchor and motion modules load with the page lifecycle; Mermaid and the GPU renderer remain conditional imports.
+
+Use an indirection only where it hides a changing implementation: collection access, rendering, or an effect's lifetime. Keep pure functions directly callable. There is no service container, event bus, or pass-through barrel layer.
+
+Styles follow their consumers. `global.css` establishes `reset, vendor, base, components, utilities`; component and article styles use those layers. UI icons use direct [Lucide](https://lucide.dev/guide/astro/getting-started) imports; the mark and particle motif remain custom, and the GitHub link uses the official brand asset.
 
 ## Build and content
 
 [Content Collections](https://docs.astro.build/en/guides/content-collections/) load Markdown and MDX with `glob()` and validate frontmatter with Zod. Slugs and translation keys must be unique per collection and locale, including drafts. Published entries exclude drafts and sort by date, then ID.
 
-Sätteri processes both formats. Temml converts math to MathML with document-scoped macros; invalid TeX fails the build. Footnote labels follow the content locale. Expressive Code supplies highlighting, frames, copy controls, markers, and its official line-number plugin through `satteri-expressive-code`. Astro’s separate highlighter is disabled. Keep plugin versions compatible with Sätteri’s Expressive Code version.
+Sätteri processes both formats. Temml converts math to MathML with document-scoped macros; invalid TeX fails the build. Footnote labels follow the content locale. [astro-expressive-code](https://expressive-code.com/installation/) runs before MDX and adds its native Sätteri adapter. It owns highlighting, frames, copy controls, markers, and shared hashed CSS/JS assets; the official line-number plugin uses the same release. `markdown/code.ts` supplies site styling and locale options. The integration disables Astro’s separate highlighter. A preceding HAST transform preserves Mermaid as escaped `pre[data-mermaid]` source, outside highlighting and search indexing.
 
 MDX embeds Astro components without a hydrated framework. Treat it as executable, trusted repository content. Routes pass inferred `getStaticPaths()` props into layouts. `Page.astro` renders its slot once to detect MathML before writing the head, then reuses that HTML. Its explicit global stylesheet link establishes layer order before conditional math styles.
 
@@ -60,7 +71,7 @@ Each animated property has one owner. [CSSPlugin](https://gsap.com/docs/v3/GSAP/
 
 Anchor scrolling preserves Astro’s fragment history, resetting its immediate scroll before paint so GSAP can start from the click position. Input or navigation cancels pending and active motion. Skip links and reduced motion scroll natively; CSS smooth scrolling stays off.
 
-The inline head script applies the theme before paint; subsequent swaps use the same preference. The contents disclosure derives its initial open state from CSS positioning. The MDX easing experiment owns its timeline through custom-element connection and disconnection.
+The small inline head script applies the theme before paint; subsequent swaps use the saved or session preference. The theme control cycles system, light, and dark, showing the corresponding monitor, sun, or moon icon with a localized accessible name. The contents disclosure derives its initial open state from CSS positioning. The MDX easing experiment owns its timeline through custom-element connection and disconnection.
 
 ## Search and renderers
 
@@ -68,7 +79,7 @@ The inline head script applies the theme before paint; subsequent swaps use the 
 
 [astro-pagefind](https://github.com/shishkin/astro-pagefind) indexes built HTML and serves that index during development. Rebuild after editing content. Only article and note bodies are indexed; navigation, metadata, licenses, related reading, diagram source, and code controls are excluded. Notes retain heading fragments for search links.
 
-[Pagefind](https://pagefind.app/docs/api/) owns language selection, workers, debouncing, ranking, and excerpts. Each page creates and destroys its own instance, including late initialization results. Input focus warms the index; queries retry failed initialization. Results load six at a time. Native dialog commands own focus and dismissal; GSAP owns entry. Results remain ordinary navigation links.
+[Pagefind](https://pagefind.app/docs/api/) owns language selection, workers, debouncing, ranking, and excerpts. Each page creates and destroys its own instance, including late initialization results. Input focus warms the index; queries retry failed initialization and wait for input-method composition to finish. Results load six at a time. Native dialog commands and `autofocus` own opening, initial focus, and dismissal; GSAP owns entry. Results remain ordinary navigation links.
 
 Chinese compounds can occasionally miss matches because indexing and query tokenization differ; see the [upstream issue](https://github.com/Pagefind/pagefind/issues/1237).
 
@@ -80,7 +91,7 @@ Mermaid loads only for diagram fences, waits for fonts, and uses [`render()` and
 
 ### Particle field
 
-[Babylon Lite](https://doc.babylonjs.com/lite/) loads near the viewport when WebGPU is available. `particle-field.ts` supplies deterministic positions to the SVG fallback and GPU scene. One thin-instanced plane draws camera-facing particles through an orthographic camera. GSAP smooths pointer response; WGSL applies local displacement and circular coverage. Instance buffers remain fixed after creation.
+[Babylon Lite](https://doc.babylonjs.com/lite/) loads near the viewport when WebGPU is available. `components/particles/field.ts` supplies deterministic positions to the SVG fallback and GPU scene. One thin-instanced plane draws camera-facing particles through an orthographic camera. GSAP smooths pointer response; WGSL applies local displacement and circular coverage. Instance buffers remain fixed after creation.
 
 Enable asynchronous compilation before scene registration and device recovery before geometry creation. Lite owns pipelines, bindings, and recovery; the mount owns sizing, visibility, and disposal. The SVG stays visible until the first frame and returns during device loss. Failed recovery releases the scene.
 

@@ -21,6 +21,30 @@ export default defineConfig(
     },
   },
   {
+    files: ["src/content/**/*.{ts,astro}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "astro:content",
+              message: "Article embeds must not load the site's collections.",
+            },
+          ],
+          patterns: [
+            {
+              regex:
+                "(?:^|/)(?:client|components|i18n|layouts|markdown|publication|site)(?:/|\\.|$)",
+              message:
+                "Keep article code independent of the site; own its copy and state locally.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ["tests/browser/**/*.ts"],
     rules: {
       "no-empty-pattern": ["error", { allowObjectPatternsAsParameters: true }],

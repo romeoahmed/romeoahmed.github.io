@@ -1,7 +1,8 @@
 import { beforeEach, expect, test } from "vitest";
 import { cdp, page, userEvent } from "vitest/browser";
-import { mountEasingExperiment } from "../../src/client/easing-experiment";
+import { mountEasingExperiment } from "../../src/content/embeds/easing/motion";
 import "../../src/styles/global.css";
+import "../../src/content/embeds/easing/easing.css";
 
 beforeEach(async ({ onTestFinished }) => {
   await cdp().send("Emulation.setEmulatedMedia", {

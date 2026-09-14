@@ -1,8 +1,7 @@
 import { pluginLineNumbers } from "@expressive-code/plugin-line-numbers";
-import expressiveCode, { pluginFramesTexts } from "satteri-expressive-code";
+import { defineEcConfig, pluginFramesTexts } from "astro-expressive-code";
 import { messages } from "../i18n/messages";
 import { locales, localeInfo } from "../i18n/locales";
-import { defineHastPlugin } from "satteri";
 
 for (const locale of locales) {
   const t = messages[locale];
@@ -13,12 +12,12 @@ for (const locale of locales) {
   });
 }
 
-const createPlugin = expressiveCode({
+export const codeOptions = defineEcConfig({
   useDarkModeMediaQuery: false,
   themeCssSelector: (theme) => `[data-theme="${theme.type}"]`,
   cascadeLayer: "vendor",
-  getBlockLocale: ({ document }) =>
-    document.filename.includes("/zh-hans/") ? "zh-Hans" : "en",
+  getBlockLocale: ({ file }) =>
+    file.path.includes("/zh-hans/") ? "zh-Hans" : "en",
   plugins: [pluginLineNumbers()],
   styleOverrides: {
     borderRadius: "3px",
@@ -47,28 +46,3 @@ const createPlugin = expressiveCode({
     },
   },
 });
-
-/** Highlights code while preserving Mermaid source for browser rendering. */
-export function codePlugin() {
-  const plugin = createPlugin();
-  const visitor = plugin.element;
-  if (!visitor || Array.isArray(visitor))
-    throw new Error("Expected Expressive Code's element visitor");
-  return defineHastPlugin({
-    ...plugin,
-    element: {
-      ...visitor,
-      visit(node, context) {
-        const code = node.children[0];
-        if (
-          code?.type === "element" &&
-          code.properties["className"]?.toString().includes("language-mermaid")
-        ) {
-          context.setProperty(node, "dataPagefindIgnore", true);
-          return;
-        }
-        return visitor.visit(node, context);
-      },
-    },
-  });
-}

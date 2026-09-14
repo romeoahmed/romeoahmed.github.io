@@ -2,10 +2,10 @@
 import "../styles/home.css";
 import Page from "../layouts/Page.astro";
 import { ArrowRight, ArrowUpRight } from "@lucide/astro";
-import SpatialMotif from "../components/SpatialMotif.astro";
+import ParticleField from "../components/particles/ParticleField.astro";
 import { locales, localeInfo } from "../i18n/locales";
-import { getPosts } from "../lib/collections";
-import { postUrl } from "../lib/publications";
+import { getPosts } from "../publication/collections";
+import { postUrl } from "../publication/entries";
 import { messages } from "../i18n/messages";
 const posts = await getPosts();
 ---
@@ -28,7 +28,7 @@ const posts = await getPosts();
         {messages["zh-hans"].intro}
       </p>
     </div>
-    <SpatialMotif />
+    <ParticleField />
   </section>
   <section>
     <header class="section-heading">

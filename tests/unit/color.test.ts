@@ -3,7 +3,7 @@ import {
   cssColorToHex,
   cssColorToLinear,
   oklchToLinearRgb,
-} from "../../src/lib/color";
+} from "../../src/client/color";
 
 test("OKLCH converts to linear light before display encoding", () => {
   expect(oklchToLinearRgb(0, 0, 0)).toEqual([0, 0, 0]);

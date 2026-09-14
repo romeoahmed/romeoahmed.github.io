@@ -130,6 +130,25 @@ test("code fences include filenames, highlighted lines and accessible line numbe
   ).toBe(true);
 });
 
+test("code pages share emitted styles and scripts while diagram-only pages omit them", () => {
+  const assets = (path: string) =>
+    Array.from(
+      read(path).querySelectorAll(
+        ".expressive-code link[rel=stylesheet], .expressive-code script[src]",
+      ),
+      (element) => element.getAttribute("href") ?? element.getAttribute("src"),
+    );
+  const englishAssets = assets(english);
+  expect(englishAssets).toEqual(
+    expect.arrayContaining([
+      expect.stringMatching(/^\/_astro\/.+\.css$/),
+      expect.stringMatching(/^\/_astro\/.+\.js$/),
+    ]),
+  );
+  expect(assets(chinese)).toEqual(englishAssets);
+  expect(assets("en/posts/a-quieter-web/index.html")).toEqual([]);
+});
+
 test("article images provide responsive WebP, dimensions, alternative text and captions", () => {
   for (const path of [
     "en/posts/a-quieter-web/index.html",
@@ -262,10 +281,10 @@ test("MDX emits mathematics, labeled code, and inspectable content before enhanc
 test("Markdown and MDX leave accessible diagram source available without JavaScript", () => {
   for (const path of ["en/posts/a-quieter-web/index.html", english, chinese]) {
     const doc = read(path);
-    const code = doc.querySelector("pre > code.language-mermaid");
+    const code = doc.querySelector<HTMLPreElement>("pre[data-mermaid]");
     expect(code?.textContent).toContain("flowchart LR");
     expect(code?.textContent).toContain("accTitle:");
     expect(code?.textContent).toContain("accDescr:");
-    expect(code?.parentElement?.hidden).toBe(false);
+    expect(code?.hidden).toBe(false);
   }
 });

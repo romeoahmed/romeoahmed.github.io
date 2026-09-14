@@ -1,5 +1,14 @@
 import type { Locale } from "../i18n/locales";
 
+export const tags = [
+  "design",
+  "web",
+  "mathematics",
+  "interaction",
+  "engineering",
+] as const;
+export type Tag = (typeof tags)[number];
+
 export interface Publication {
   readonly id: string;
   readonly data: {

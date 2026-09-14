@@ -4,7 +4,7 @@ A personal notebook with the quiet of a future study. The hierarchy is **writing
 
 ## Composition and identity
 
-The author rail anchors wide layouts and becomes a compact header on smaller screens. Aligned dates, titles, summaries, and fine rules organize the writing list. Avoid containers that add no useful grouping.
+The author rail anchors wide layouts and becomes a compact header on smaller screens. Aligned dates, titles, summaries, and fine rules organize the writing list. Avoid containers that add no useful grouping. Navigation pairs text with notebook, note, and person icons; the active item uses the accent.
 
 The home’s tilted particle orbit provides the science-fiction character: a defined rim, sparse dust, and an open center. Keep it beside the introduction and outside the reading column. Articles carry the accent without the scene; the language-selection page hides decoration on narrow screens.
 
@@ -22,7 +22,7 @@ Let titles wrap. Keep metadata at least 12 px and standalone controls 44 px. Wid
 
 Write each edition naturally in its own language. Interface text should help readers act or recover from an error. Keep technical names where useful; never combine the author, English motto, and topic list into one translated sentence.
 
-Language choice is explicit. Link to a published translation or explain its absence. Do not invent translations or biography. Sample content keeps its visible label; implementation and acceptance notes stay out of website copy.
+Language choice is explicit. The switch pairs a language icon with the destination’s native name, including on narrow screens. Link to a published translation or explain its absence. Do not invent translations or biography. Sample content keeps its visible label; implementation and acceptance notes stay out of website copy.
 
 ## Motion
 
@@ -46,7 +46,7 @@ The article experiment compares linear motion with `power2.out` over 720 ms. Pla
 
 Particle response stays within the motif. Pressure modestly increases displacement; exit, cancellation, or lost focus restores rest. Touch scrolling remains native. No idle rotation, blinking, bloom, or trails.
 
-Reduced motion removes route travel, parallax, and settling, including when changed mid-animation. Content stays visible before enhancement. Theme changes apply promptly without prolonged low-contrast blending. [Architecture](architecture.md#browser-lifetimes-and-motion) defines ownership and cleanup.
+Reduced motion removes route travel, parallax, and settling, including when changed mid-animation. Content stays visible before enhancement. Theme changes apply promptly without prolonged low-contrast blending. The appearance control shows a monitor for system preference, a sun for light, and a moon for dark; the icon remains visible when its text is hidden on narrow layouts. [Architecture](architecture.md#browser-lifetimes-and-motion) defines ownership and cleanup.
 
 ## Search and sharing
 
