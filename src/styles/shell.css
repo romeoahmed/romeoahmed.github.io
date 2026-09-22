@@ -141,6 +141,10 @@
     margin-inline-start: auto;
   }
 
+  .footer-links {
+    display: none;
+  }
+
   .site-footer a {
     display: grid;
     place-items: center;
@@ -238,14 +242,19 @@
       display: none;
     }
 
+    .footer-links {
+      display: flex;
+      gap: 0.25rem;
+    }
+
     .language-link {
-      font-size: 0.7rem;
+      font-size: 0.75rem;
     }
 
     .page-top {
       padding-block: 1.2rem 0;
       border: 0;
-      font-size: 0.7rem;
+      font-size: 0.75rem;
     }
 
     .site-footer {
@@ -290,7 +299,7 @@
       order: 2;
     }
 
-    .site-footer a {
+    .site-footer > a {
       margin-inline-start: auto;
     }
   }
@@ -300,7 +309,7 @@
     align-items: center;
     gap: 0.6rem;
     color: var(--color-muted);
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     line-height: 1.6;
   }
 

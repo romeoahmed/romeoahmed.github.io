@@ -4,7 +4,7 @@ locale: en
 title: "One less setting"
 description: "Use the default long enough to learn what needs a choice."
 slug: defaults
-publishedAt: 2026-09-05
+publishedAt: "2026-09-05"
 license: CC-BY-NC-SA-4.0
 sample: true
 ---

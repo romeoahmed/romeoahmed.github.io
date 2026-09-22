@@ -7,6 +7,7 @@ export default defineConfig({
     projects: [
       { test: { name: "unit", dir: "tests/unit" } },
       {
+        optimizeDeps: { include: ["temml/dist/temmlPostProcess.js"] },
         plugins: [
           {
             name: "virtual-astro-navigation",

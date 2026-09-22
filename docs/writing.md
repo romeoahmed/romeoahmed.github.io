@@ -13,7 +13,7 @@ locale: en
 title: A small observation
 description: A thought I wanted to keep.
 slug: a-small-observation
-publishedAt: 2026-09-13
+publishedAt: "2026-09-13"
 draft: true
 ---
 ```
@@ -28,7 +28,7 @@ Only `draft` is optional here. Slugs and translation keys use lowercase words jo
 | `sample`       | Display the sample label; default `false`                          |
 | `license`      | Defaults to the only accepted value, `CC-BY-NC-SA-4.0`             |
 
-Use `YYYY-MM-DD` dates. Future dates do **not** schedule publication; `draft` controls visibility. The [content schema](../src/content.config.ts) is authoritative.
+Quote dates as `"YYYY-MM-DD"` so YAML preserves them for validation. Revision dates must not precede publication; tags must be unique. Future dates do **not** schedule publication; `draft` controls visibility. The [content schema](../src/publication/schema.ts) is authoritative.
 
 ## Translate
 

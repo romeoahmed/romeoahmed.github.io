@@ -4,7 +4,7 @@ locale: zh-hans
 title: "画面停稳以后"
 description: "下一帧，等有变化再画。"
 slug: idle
-publishedAt: 2026-09-11
+publishedAt: "2026-09-11"
 license: CC-BY-NC-SA-4.0
 sample: true
 ---

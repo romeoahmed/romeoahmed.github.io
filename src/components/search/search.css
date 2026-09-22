@@ -21,7 +21,7 @@
 
   .search-trigger kbd {
     margin-inline-start: 0.8rem;
-    font: 0.65rem var(--font-mono);
+    font: 0.75rem var(--font-mono);
     color: var(--color-muted);
   }
 

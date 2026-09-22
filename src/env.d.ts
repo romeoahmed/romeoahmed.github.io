@@ -1,4 +1,5 @@
 /// <reference types="astro/client" />
-interface Window {
-  temml?: { postProcess: (element: HTMLElement) => void };
+declare module "temml/dist/temmlPostProcess.js" {
+  const temml: { postProcess(element: HTMLElement): void };
+  export default temml;
 }

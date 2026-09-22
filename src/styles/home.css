@@ -114,7 +114,7 @@
 
   .edition-recent-label {
     grid-column: 1 / -1;
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     color: var(--color-muted);
   }
 

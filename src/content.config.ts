@@ -1,22 +1,7 @@
 import { defineCollection } from "astro:content";
-import { z } from "astro/zod";
 import { glob } from "astro/loaders";
-import { tags } from "./publication/entries";
-import { isLocale, locales } from "./i18n/locales";
-
-const schema = z.object({
-  translationKey: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
-  locale: z.enum(locales),
-  title: z.string().trim().min(1),
-  description: z.string().trim().min(1),
-  slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
-  publishedAt: z.coerce.date(),
-  updatedAt: z.coerce.date().optional(),
-  license: z.literal("CC-BY-NC-SA-4.0").default("CC-BY-NC-SA-4.0"),
-  draft: z.boolean().default(false),
-  sample: z.boolean().default(false),
-  tags: z.array(z.enum(tags)).default([]),
-});
+import { publicationSchema } from "./publication/schema";
+import { isLocale } from "./i18n/locales";
 const collection = (name: "posts" | "notes") =>
   defineCollection({
     loader: glob({
@@ -29,7 +14,7 @@ const collection = (name: "posts" | "notes") =>
         return entry.replace(/\.(md|mdx)$/, "");
       },
     }),
-    schema,
+    schema: publicationSchema,
   });
 export const collections = {
   posts: collection("posts"),

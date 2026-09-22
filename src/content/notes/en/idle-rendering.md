@@ -4,7 +4,7 @@ locale: en
 title: "Let the picture rest"
 description: "The next frame can wait until something changes."
 slug: idle
-publishedAt: 2026-09-11
+publishedAt: "2026-09-11"
 license: CC-BY-NC-SA-4.0
 sample: true
 ---

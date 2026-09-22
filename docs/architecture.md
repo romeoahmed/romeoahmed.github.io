@@ -4,19 +4,19 @@ Astro generates static HTML for GitHub Pages. Reading, navigation, code highligh
 
 ## Source map
 
-| Location                | Responsibility                                                           |
-| ----------------------- | ------------------------------------------------------------------------ |
-| `src/pages/`            | Routes, feeds, and sharing-image endpoints                               |
-| `src/layouts/`          | Document shell and article composition                                   |
-| `src/components/`       | Site UI; theme, search, and particles colocate their implementation      |
-| `src/content/`          | Localized writing, article embeds, and article assets                    |
-| `src/content.config.ts` | Collection loaders and frontmatter validation                            |
-| `src/publication/`      | Collection access, pure publication rules, and sharing cards             |
-| `src/markdown/`         | Build-time code configuration, math, diagrams, and footnotes             |
-| `src/i18n/`             | Site locales, interface copy, and topic labels                           |
-| `src/client/`           | Navigation lifetimes, reading enhancements, motion, and color conversion |
-| `src/styles/`           | Site tokens, shared presentation, and page layouts                       |
-| `src/site.ts`           | Public site identity                                                     |
+| Location                | Responsibility                                                                  |
+| ----------------------- | ------------------------------------------------------------------------------- |
+| `src/pages/`            | Routes, feeds, and sharing-image endpoints                                      |
+| `src/layouts/`          | Document shell and article composition                                          |
+| `src/components/`       | Site UI; theme, search, and particles colocate their implementation             |
+| `src/content/`          | Localized writing, article embeds, and article assets                           |
+| `src/content.config.ts` | Collection loaders and schema registration                                      |
+| `src/publication/`      | Frontmatter validation, collection access, publication rules, and sharing cards |
+| `src/markdown/`         | Build-time code configuration, math, diagrams, and footnotes                    |
+| `src/i18n/`             | Site locales, interface copy, and topic labels                                  |
+| `src/client/`           | Navigation lifetimes, reading enhancements, motion, and color conversion        |
+| `src/styles/`           | Site tokens, shared presentation, and page layouts                              |
+| `src/site.ts`           | Public site identity                                                            |
 
 ## Dependencies and APIs
 
@@ -24,7 +24,7 @@ Routes load content through `publication/collections.ts`; `entries.ts` provides 
 
 Article source imports only its own assets and `content/embeds/`. Each embed owns its props, copy, styles, and effects. The site renders articles through Astro Content Collections and does not import an experiment's implementation. Embeds do not import site modules, query the site shell, or subscribe to router events. ESLint restricts static imports from embed TypeScript and Astro files. The shared CSS custom properties are their presentation contract; pass other inputs through props.
 
-Browser mounts keep mutable state in closures and return cleanup functions. `client/lifecycle.ts` coordinates them with Astro navigation; lazy mounts that finish after disposal are immediately released. Theme, search, and particle implementation details stay beside their components. The small anchor and motion modules load with the page lifecycle; Mermaid and the GPU renderer remain conditional imports.
+Browser mounts keep mutable state in closures and return cleanup functions. `client/lifecycle.ts` coordinates them with Astro navigation; the particle mount uses the page's abort signal to release late initialization results. Theme, search, and particle implementation details stay beside their components. The small anchor and motion modules load with the page lifecycle; Mermaid and the GPU renderer load near the viewport.
 
 Use an indirection only where it hides a changing implementation: collection access, rendering, or an effect's lifetime. Keep pure functions directly callable. There is no service container, event bus, or pass-through barrel layer.
 
@@ -71,7 +71,7 @@ Each animated property has one owner. [CSSPlugin](https://gsap.com/docs/v3/GSAP/
 
 Anchor scrolling preserves Astro’s fragment history, resetting its immediate scroll before paint so GSAP can start from the click position. Input or navigation cancels pending and active motion. Skip links and reduced motion scroll natively; CSS smooth scrolling stays off.
 
-The small inline head script applies the theme before paint; subsequent swaps use the saved or session preference. The theme control cycles system, light, and dark, showing the corresponding monitor, sun, or moon icon with a localized accessible name. The contents disclosure derives its initial open state from CSS positioning. The MDX easing experiment owns its timeline through custom-element connection and disconnection.
+The small inline head script applies the theme before paint; subsequent swaps use the saved or session preference. The theme control cycles system, light, and dark, showing the corresponding monitor, sun, or moon icon with a localized accessible name. The contents disclosure derives its initial open state from CSS positioning. Native scroll and resize events track the last heading above the viewport's upper third, updating only the changed links. The MDX easing experiment owns its timeline through custom-element connection and disconnection.
 
 ## Search and renderers
 
@@ -79,15 +79,15 @@ The small inline head script applies the theme before paint; subsequent swaps us
 
 [astro-pagefind](https://github.com/shishkin/astro-pagefind) indexes built HTML and serves that index during development. Rebuild after editing content. Only article and note bodies are indexed; navigation, metadata, licenses, related reading, diagram source, and code controls are excluded. Notes retain heading fragments for search links.
 
-[Pagefind](https://pagefind.app/docs/api/) owns language selection, workers, debouncing, ranking, and excerpts. Each page creates and destroys its own instance, including late initialization results. Input focus warms the index; queries retry failed initialization and wait for input-method composition to finish. Results load six at a time. Native dialog commands and `autofocus` own opening, initial focus, and dismissal; GSAP owns entry. Results remain ordinary navigation links.
+[Pagefind](https://pagefind.app/docs/api/) owns language selection, workers, debouncing, ranking, and excerpts. Each page creates and destroys its own instance, including late initialization results. Input focus warms the index; queries retry failed initialization and wait for input-method composition to finish. Previous results remain visible while a query updates and are replaced together when its first page is ready. Results load six at a time. Native dialog commands and `autofocus` own opening, initial focus, and dismissal; `closedby` adds optional light dismissal where supported; GSAP owns entry. Results remain ordinary navigation links.
 
 Chinese compounds can occasionally miss matches because indexing and query tokenization differ; see the [upstream issue](https://github.com/Pagefind/pagefind/issues/1237).
 
 ### Math and diagrams
 
-Pages containing MathML load Temml’s STIX layout rules and STIX Two Math through Astro’s local font provider. This preserves the full mathematical glyph range. Only equation references need Temml’s browser post-processing script; formulas remain readable if it fails.
+Pages containing MathML load Temml’s STIX layout rules and STIX Two Math through Astro’s local font provider. This preserves the full mathematical glyph range. Equation references dynamically import Temml’s small post-processing bundle through Vite; no global or custom script loader is needed. Formulas remain readable if it fails.
 
-Mermaid loads only for diagram fences, waits for fonts, and uses [`render()` and `bindFunctions`](https://mermaid.js.org/config/usage.html). Automatic startup is disabled. A shared queue serializes global theme configuration and rendering. Stale results cannot insert SVG; the previous diagram remains visible until its replacement succeeds, and failures restore source. Cleanup removes observers and measurement elements. The color adapter converts OKLCH tokens to sRGB hex.
+Mermaid loads when a diagram approaches the viewport, waits for fonts, and uses [`render()` and `bindFunctions`](https://mermaid.js.org/config/usage.html). Automatic startup is disabled. Dagre handles the default layout; individual diagrams can opt into ELK through their YAML configuration. A shared queue serializes global theme configuration and rendering. Stale results cannot insert SVG; the previous diagram remains visible until its replacement succeeds, and failures restore source. Cleanup removes observers and measurement elements. The color adapter converts OKLCH tokens to sRGB hex.
 
 ### Particle field
 

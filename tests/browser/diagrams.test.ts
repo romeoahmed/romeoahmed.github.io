@@ -11,7 +11,33 @@ beforeEach(({ onTestFinished }) => {
     vi.restoreAllMocks();
     document.documentElement.removeAttribute("data-theme");
     document.body.replaceChildren();
+    window.scrollTo(0, 0);
   });
+});
+
+test("offscreen diagrams keep their source until approached", async ({
+  onTestFinished,
+}) => {
+  document.body.innerHTML =
+    '<div style="height:200vh"></div><pre data-mermaid></pre>';
+  const pre = document.querySelector("pre")!;
+  pre.textContent = source;
+  onTestFinished(mountDiagrams());
+  await new Promise<void>((resolve) => {
+    const observer = new IntersectionObserver(() => {
+      observer.disconnect();
+      resolve();
+    });
+    observer.observe(pre);
+  });
+  expect(pre.hidden).toBe(false);
+  expect(document.querySelector(".diagram")).toBeNull();
+  document.documentElement.dataset["theme"] = "dark";
+  pre.scrollIntoView();
+  await expect
+    .element(page.getByRole("document", { name: "Publishing" }))
+    .toBeVisible();
+  expect(pre.hidden).toBe(true);
 });
 
 test("diagrams expose an accessible name, follow the palette, and remount without duplicates", async ({

@@ -60,39 +60,40 @@ export function mountSearch(bundlePath = "/pagefind/", baseUrl?: string) {
       }
     })());
   const current = (id: number) => !signal.aborted && id === request;
-  const append = async (id: number) => {
+  const append = async (id: number, replace = false) => {
     const moveFocus = document.activeElement === more;
     const firstNewResult = shown;
     more.disabled = true;
+    list.ariaBusy = "true";
     try {
       const page = await Promise.all(
         results.slice(shown, shown + 6).map((result) => result.data()),
       );
       if (!current(id)) return;
-      list.append(
-        ...page.map((result) => {
-          const item = document.importNode(template.content, true);
-          const link = item.querySelector("a")!;
-          link.href = result.url;
-          link.textContent = result.meta.title;
-          // Pagefind escapes indexed text before adding its <mark> elements.
-          item.querySelector("p")!.innerHTML = result.excerpt;
-          item.querySelector("ul")!.append(
-            ...result.sub_results
-              .filter((heading) => heading.url !== result.url)
-              .slice(0, 3)
-              .map((heading) => {
-                const entry = document.createElement("li");
-                const anchor = document.createElement("a");
-                anchor.href = heading.url;
-                anchor.textContent = heading.title;
-                entry.append(anchor);
-                return entry;
-              }),
-          );
-          return item;
-        }),
-      );
+      const items = page.map((result) => {
+        const item = document.importNode(template.content, true);
+        const link = item.querySelector("a")!;
+        link.href = result.url;
+        link.textContent = result.meta.title;
+        // Pagefind escapes indexed text before adding its <mark> elements.
+        item.querySelector("p")!.innerHTML = result.excerpt;
+        item.querySelector("ul")!.append(
+          ...result.sub_results
+            .filter((heading) => heading.url !== result.url)
+            .slice(0, 3)
+            .map((heading) => {
+              const entry = document.createElement("li");
+              const anchor = document.createElement("a");
+              anchor.href = heading.url;
+              anchor.textContent = heading.title;
+              entry.append(anchor);
+              return entry;
+            }),
+        );
+        return item;
+      });
+      if (replace) list.replaceChildren(...items);
+      else list.append(...items);
       if (moveFocus) list.children[firstNewResult]?.querySelector("a")?.focus();
       shown += page.length;
       status.textContent = results.length
@@ -102,16 +103,26 @@ export function mountSearch(bundlePath = "/pagefind/", baseUrl?: string) {
     } catch {
       if (current(id)) status.textContent = t.searchError;
     } finally {
-      if (current(id)) more.disabled = false;
+      if (current(id)) {
+        more.disabled = false;
+        list.ariaBusy = "false";
+      }
     }
   };
   const search = async () => {
     const id = ++request;
     const term = input.value.trim();
-    list.replaceChildren();
     more.hidden = true;
-    status.textContent = term ? t.searchLoading : t.searchHint;
-    if (!term) return;
+    if (!term) {
+      list.replaceChildren();
+      list.ariaBusy = "false";
+      status.textContent = t.searchHint;
+      return;
+    }
+    list.ariaBusy = "true";
+    status.textContent = list.children.length
+      ? t.searchUpdating
+      : t.searchLoading;
     try {
       const engine = await load();
       if (!engine || !current(id)) return;
@@ -119,9 +130,11 @@ export function mountSearch(bundlePath = "/pagefind/", baseUrl?: string) {
       if (!found || !current(id)) return;
       results = found.results;
       shown = 0;
-      await append(id);
+      await append(id, true);
     } catch {
       if (current(id)) status.textContent = t.searchError;
+    } finally {
+      if (current(id)) list.ariaBusy = "false";
     }
   };
   input.addEventListener(

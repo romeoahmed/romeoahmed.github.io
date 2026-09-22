@@ -242,12 +242,7 @@ const pageTransition = {
           <a href={root ? "/" : home(locale)}>{t.volume}</a>
           <Search locale={locale} />
         </div>
-        <main
-          id="main"
-          tabindex="-1"
-          data-reading
-          data-references={content.includes("tml-ref")}
-        >
+        <main id="main" tabindex="-1">
           <Fragment set:html={content} />
         </main>
         <footer class="site-footer">
@@ -255,6 +250,14 @@ const pageTransition = {
             © {new Date().getUTCFullYear()} {site.author}
           </span>
           <span>{t.footer}</span>
+          <nav class="footer-links" aria-label={t.elsewhere}>
+            <a href={site.github} aria-label="GitHub">
+              <GitHub width="20" height="20" aria-hidden="true" />
+            </a>
+            <a href={`/${locale}/rss.xml`} aria-label={t.feed}>
+              <Rss aria-hidden="true" />
+            </a>
+          </nav>
           <a href="#main" aria-label={t.top}>
             <ArrowUp />
           </a>

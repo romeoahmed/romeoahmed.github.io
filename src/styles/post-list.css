@@ -45,7 +45,7 @@
 
   .post-number {
     color: var(--color-accent);
-    font: 0.62rem var(--font-mono);
+    font: 0.75rem var(--font-mono);
   }
 
   .post-kind {

@@ -30,6 +30,7 @@ const zh = {
   searchClose: "关闭搜索",
   searchMore: "查看更多",
   searchLoading: "正在搜索……",
+  searchUpdating: "正在更新结果……",
   searchEmpty: "没有找到，换个词试试。",
   searchError: "暂时无法搜索，请再试一次。",
   searchCount: (count: number) => `找到 ${count} 条结果`,

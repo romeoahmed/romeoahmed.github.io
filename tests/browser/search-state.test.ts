@@ -129,6 +129,31 @@ test("loading more appends results and moves focus to the first new result", asy
   await expect.element(more).not.toBeInTheDocument();
 });
 
+test("results remain visible through an update and are replaced only when details arrive", async () => {
+  const next = await result("Next").data();
+  const details = Promise.withResolvers<typeof next>();
+  index.debouncedSearch
+    .mockResolvedValueOnce({ results: [result("Previous")] })
+    .mockResolvedValueOnce({ results: [{ data: () => details.promise }] });
+  await page.getByRole("button", { name: "Search the notebook" }).click();
+  const input = page.getByRole("searchbox");
+  await input.fill("first");
+  const previous = page.getByRole("link", { name: "Previous" });
+  await expect.element(previous).toBeVisible();
+  await input.fill("next");
+  await expect
+    .element(page.getByRole("status"))
+    .toHaveTextContent("Updating results…");
+  await expect.element(previous).toBeVisible();
+  expect(document.querySelector("ol")!.ariaBusy).toBe("true");
+  details.resolve(next);
+  await expect.element(page.getByRole("link", { name: "Next" })).toBeVisible();
+  await expect.element(previous).not.toBeInTheDocument();
+  expect(document.querySelector("ol")!.ariaBusy).toBe("false");
+  await input.fill("");
+  await expect.element(page.getByRole("link")).not.toBeInTheDocument();
+});
+
 test("navigation releases an index that finishes warming after departure", async ({
   dispose,
 }) => {

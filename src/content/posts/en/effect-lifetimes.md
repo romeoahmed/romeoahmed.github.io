@@ -4,7 +4,7 @@ locale: en
 title: "Knowing when to stop"
 description: "A function can finish while the work it started is still running."
 slug: small-functions
-publishedAt: 2026-09-02
+publishedAt: "2026-09-02"
 license: CC-BY-NC-SA-4.0
 sample: true
 tags: [engineering]

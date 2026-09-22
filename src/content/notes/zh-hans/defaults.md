@@ -4,7 +4,7 @@ locale: zh-hans
 title: "少一个选项"
 description: "先用一阵子，再决定要不要把选择交出去。"
 slug: defaults
-publishedAt: 2026-09-05
+publishedAt: "2026-09-05"
 license: CC-BY-NC-SA-4.0
 sample: true
 ---

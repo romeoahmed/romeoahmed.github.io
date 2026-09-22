@@ -4,6 +4,7 @@ import { mountReading } from "./reading";
 import { mountSearch } from "../components/search/search";
 import { mountAnchors } from "./anchors";
 import { mountMotion } from "./motion";
+import { mountDiagrams } from "./diagrams";
 
 let disposePage = () => {};
 let firstPage = true;
@@ -16,22 +17,9 @@ function mountPage() {
     mountSearch(),
     mountAnchors(),
     mountMotion(firstPage),
+    mountDiagrams(),
   ];
-  // Dispose mounts that finish after their page has left.
-  const own = async (mount: () => (() => void) | Promise<() => void>) => {
-    if (controller.signal.aborted) return;
-    const cleanup = await mount();
-    if (controller.signal.aborted) cleanup();
-    else cleanups.push(cleanup);
-  };
   firstPage = false;
-  if (document.querySelector("pre[data-mermaid]")) {
-    void import("./diagrams")
-      .then(({ mountDiagrams }) => own(mountDiagrams))
-      .catch(() => {
-        // The diagram source remains readable.
-      });
-  }
   const host = document.querySelector<HTMLElement>("[data-spatial-scene]");
   if (host && navigator.gpu) {
     const observer = new IntersectionObserver(
@@ -40,7 +28,7 @@ function mountPage() {
         observer.disconnect();
         void import("../components/particles/scene")
           .then(({ mountParticleScene }) =>
-            own(() => mountParticleScene(host, controller.signal)),
+            mountParticleScene(host, controller.signal),
           )
           .catch(() => {
             host.removeAttribute("data-scene-ready");

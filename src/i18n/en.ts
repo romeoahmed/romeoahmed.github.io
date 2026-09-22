@@ -30,6 +30,7 @@ const en = {
   searchClose: "Close search",
   searchMore: "Show more",
   searchLoading: "Searching…",
+  searchUpdating: "Updating results…",
   searchEmpty: "No matches. Try another word.",
   searchError: "Search is unavailable. Please try again.",
   searchCount: (count: number) =>

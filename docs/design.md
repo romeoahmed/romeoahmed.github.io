@@ -4,7 +4,7 @@ A personal notebook with the quiet of a future study. The hierarchy is **writing
 
 ## Composition and identity
 
-The author rail anchors wide layouts and becomes a compact header on smaller screens. Aligned dates, titles, summaries, and fine rules organize the writing list. Avoid containers that add no useful grouping. Navigation pairs text with notebook, note, and person icons; the active item uses the accent.
+The author rail anchors wide layouts and becomes a compact header on smaller screens. Aligned dates, titles, summaries, and fine rules organize the writing list. Avoid containers that add no useful grouping. Navigation pairs text with notebook, note, and person icons; the active item uses the accent. GitHub and RSS move from the author rail to the footer on narrow layouts.
 
 The home’s tilted particle orbit provides the science-fiction character: a defined rim, sparse dust, and an open center. Keep it beside the introduction and outside the reading column. Articles carry the accent without the scene; the language-selection page hides decoration on narrow screens.
 
