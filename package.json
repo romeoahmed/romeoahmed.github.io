@@ -18,7 +18,7 @@
     "verify": "pnpm fmt:check && pnpm check && pnpm lint && pnpm build && pnpm test"
   },
   "dependencies": {
-    "@astrojs/markdown-satteri": "^0.4.1",
+    "@astrojs/markdown-satteri": "^0.4.2",
     "@astrojs/mdx": "^8.0.1",
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.4",
